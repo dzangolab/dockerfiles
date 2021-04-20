@@ -6,4 +6,4 @@ COPY start.sh /var/www/html/
 
 RUN chmod +x start.sh
 
-CMD ["/start.sh"]
+CMD ["start.sh"]
