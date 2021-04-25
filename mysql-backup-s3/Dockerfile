@@ -1,4 +1,4 @@
-FROM amazon/aws-cli:latest
+FROM schickling/mysql-backup-s3
 LABEL maintainer Dzango Technologies <info@dzango.com>
 
 ADD run.sh run.sh
