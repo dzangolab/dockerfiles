@@ -1,4 +1,5 @@
 FROM alpine:3.13
+LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 
 ENV GLIBC_VER=2.33-r0
 

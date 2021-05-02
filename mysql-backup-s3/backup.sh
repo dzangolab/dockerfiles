@@ -27,22 +27,22 @@ fi
 
 if [ "${S3_BUCKET}" == "**None**" ]; then
   echo "You need to set the S3_BUCKET environment variable."
-#  exit 1
+  exit 1
 fi
 
 if [ "${MYSQL_HOST}" == "**None**" ]; then
   echo "You need to set the MYSQL_HOST environment variable."
-#  exit 1
+  exit 1
 fi
 
 if [ "${MYSQL_USER}" == "**None**" ]; then
   echo "You need to set the MYSQL_USER environment variable."
-#  exit 1
+  exit 1
 fi
 
 if [ "${MYSQL_PASSWORD}" == "**None**" ]; then
   echo "You need to set the MYSQL_PASSWORD environment variable or link to a container named MYSQL."
-#  exit 1
+  exit 1
 fi
 
 if [ "${S3_IAMROLE}" != "true" ]; then
