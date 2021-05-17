@@ -4,7 +4,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 ARG EASYAPPOINMENT_RELEASE=1.4.1
 
 WORKDIR "/var/www/html"
-
 # Download and extract easyappointments tarball
 RUN curl -o easyappointments.tar.gz -fL "https://github.com/alextselegidis/easyappointments/archive/refs/tags/$EASYAPPOINMENT_RELEASE.tar.gz"; \
     tar -xzf easyappointments.tar.gz --strip-components=1 -C /var/www/html/; \
@@ -50,7 +49,7 @@ RUN apt-get update && apt-get install -y \
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
 
-COPY docker/server/php.ini /usr/local/etc/php/conf.d/99-overrides.ini
+COPY config.php  /var/www/html/
 
 RUN a2enmod rewrite
 
