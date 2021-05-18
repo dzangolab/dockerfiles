@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sed -i "s/__BASE_URL__/${BASE_URL}/" /var/www/html/config.php
+sed -i "s;__BASE_URL__;${BASE_URL};" /var/www/html/config.php
 
 sed -i "s/__LANGUAGE__/${LANGUAGE}/" /var/www/html/config.php
 
