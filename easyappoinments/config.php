@@ -30,28 +30,28 @@ class Config {
     // GENERAL SETTINGS
     // ------------------------------------------------------------------------
 
-    const BASE_URL      = $_SERVER['BASE_URL'];
-    const LANGUAGE      = $_SERVER['LANGUAGE'];
-    const DEBUG_MODE    = $_SERVER['DEBUG_MODE'];
+    const BASE_URL      = '__BASE_URL__';
+    const LANGUAGE      = '__LANGUAGE__';
+    const DEBUG_MODE    = __DEBUG_MODE__;
 
     // ------------------------------------------------------------------------
     // DATABASE SETTINGS
     // ------------------------------------------------------------------------
 
-    const DB_HOST       = $_SERVER['DB_HOST'];
-    const DB_NAME       = $_SERVER['DB_NAME'];
-    const DB_USERNAME   = $_SERVER['DB_USERNAME'];
-    const DB_PASSWORD   = $_SERVER['DB_PASSWORD'];
+    const DB_HOST       = '__DB_HOST__';
+    const DB_NAME       = '__DB_NAME__';
+    const DB_USERNAME   = '__DB_USERNAME__';
+    const DB_PASSWORD   = '__DB_PASSWORD__';
 
     // ------------------------------------------------------------------------
     // GOOGLE CALENDAR SYNC
     // ------------------------------------------------------------------------
 
-    const GOOGLE_SYNC_FEATURE   = $_SERVER['GOOGLE_SYNC_FEATURE']; // Enter TRUE or FALSE
-    const GOOGLE_PRODUCT_NAME   = $_SERVER['GOOGLE_PRODUCT_NAME'];
-    const GOOGLE_CLIENT_ID      = $_SERVER['GOOGLE_CLIENT_ID'];
-    const GOOGLE_CLIENT_SECRET  = $_SERVER['GOOGLE_CLIENT_SECRET'];
-    const GOOGLE_API_KEY        = $_SERVER['GOOGLE_API_KEY'];
+    const GOOGLE_SYNC_FEATURE   = __GOOGLE_SYNC_FEATURE__; // Enter TRUE or FALSE
+    const GOOGLE_PRODUCT_NAME   = '__GOOGLE_PRODUCT_NAME__';
+    const GOOGLE_CLIENT_ID      = '__GOOGLE_CLIENT_ID__';
+    const GOOGLE_CLIENT_SECRET  = '__GOOGLE_CLIENT_SECRET__';
+    const GOOGLE_API_KEY        = '__GOOGLE_API_KEY__';
 }
 
 /* End of file config.php */
