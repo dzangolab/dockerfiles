@@ -16,8 +16,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd gettext mysqli pdo_mysql
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename composer \
-    && composer update
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename composer
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
     && apt update \
@@ -41,9 +40,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd gettext mysqli pdo_mysql
-
-RUN pecl install xdebug \
-    && docker-php-ext-enable xdebug
 
 COPY php.ini /usr/local/etc/php/conf.d/99-overrides.ini
 

@@ -1,43 +1,22 @@
-### easyappoinments docker file
+### Easyappoinments docker file
 
-###Installation
-Clone the repository
+#### List of env vars supported
 
-```bash
-git clone https://github.com/dzangolab/dockerfiles.git
-```
 
-Change the directory
-
-```bash
-cd easyappoinments
-```
-
-Build the image
-
-```bash
-docker build -t easyappoinment:latest .
-```
-
-### Usage
-
-The app requires `mysql:5.7` image and depends on `mysql`service.
-
-Add the `.env` file with the following variables.
-
-```bash
-BASE_URL=http://localhost:8000
-LANGUAGE=english
-DEBUG_MODE=FALSE
-
-DB_HOST=mysql
-DB_NAME=databasename // DB_NAME should match with the environment MYSQL_DATABASE defined in mysql service
-DB_USERNAME=dbusername
-DB_PASSWORD=dbpassword
-
-GOOGLE_SYNC_FEATURE=FALSE
-GOOGLE_PRODUCT_NAME=''
-GOOGLE_CLIENT_ID=''
-GOOGLE_CLIENT_SECRET=''
-GOOGLE_API_KEY=''
-```
+|Env variable|Type|Required|Default|Description|
+|---|---|---|---|---|
+|BASE_URL|String|TRUE||Base url of the app e.g: https://localhost:8000|
+|LANGUAGE|String| |english| Language of the app|
+|DEBUG_MODE|String| |FALSE|Enable/Disable debug mode, set to `TRUE` to enable debug mode|
+|DB_HOST|String|TRUE| |Database host|
+|DB_NAME|String|TRUE| |Database name|
+|DB_USERNAME|String|TRUE| |Database username|
+|DB_PASSWORD|String|TRUE| |Database password|
+|DB_PASSWORD_FILE|String|TRUE| |Provide file to set DB_PASSWORD, `this will override DB_PASSWORD` |
+|GOOGLE_SYNC_FEATURE|String| |FALSE|Enable/Disable google calendar sync feature, set to `TRUE` to enable the feature|
+|GOOGLE_PRODUCT_NAME|String||||
+|GOOGLE_CLIENT_ID|String||||
+|GOOGLE_CLIENT_SECRET|String||||
+|GOOGLE_CLIENT_SECRET_FILE|String| | |Provide file to set GOOGLE_CLIENT_SECRET, `this will override GOOGLE_CLIENT_SECRET`|
+|GOOGLE_API_KEY|String||||
+|GOOGLE_API_KEY_FILE|String| | |Provide file to set GOOGLE_API_KEY, `this will override GOOGLE_API_KEY`|
