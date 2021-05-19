@@ -1,8 +1,6 @@
-### Easyappoinments docker file
+# Easyappoinments docker file
 
-#### List of env vars supported
-
-
+## Supported ENV variables
 |Env variable|Type|Required|Default|Description|
 |---|---|---|---|---|
 |BASE_URL|String|TRUE||Base url of the app e.g: https://localhost:8000|
@@ -20,3 +18,11 @@
 |GOOGLE_CLIENT_SECRET_FILE|String| | |Provide file to set GOOGLE_CLIENT_SECRET, `this will override GOOGLE_CLIENT_SECRET`|
 |GOOGLE_API_KEY|String||||
 |GOOGLE_API_KEY_FILE|String| | |Provide file to set GOOGLE_API_KEY, `this will override GOOGLE_API_KEY`|
+
+## Local testing
+
+Run the app locally for testing the image this will start a server http://localhost:8000
+
+```
+docker-compose up -d
+```
