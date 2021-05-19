@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e 
+
+if [ -n "${AWS_SECRET_ACCESS_KEY_FILE}" ]; then
+  AWS_SECRET_ACCESS_KEY=$(cat "$AWS_SECRET_ACCESS_KEY_FILE")
+  export AWS_SECRET_ACCESS_KEY
+fi
+
+if [ -n "${PORTAINER_PASSWORD_FILE}" ]; then
+  PORTAINER_PASSWORD=$(cat "$PORTAINER_PASSWORD_FILE")
+  export PORTAINER_PASSWORD
+fi
+
+npm start
