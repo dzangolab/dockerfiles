@@ -4,12 +4,12 @@ set -e
 
 if [ -n "${DB_PASSWORD_FILE}" ]; then
   DB_PASSWORD=$(cat "$DB_PASSWORD_FILE")
-  export AWS_SECRET_ACCESS_KEY
+  export DB_PASSWORD
 fi
 
 if [ -n "${GOOGLE_CLIENT_SECRET_FILE}" ]; then
   GOOGLE_CLIENT_SECRET=$(cat "$GOOGLE_CLIENT_SECRET_FILE")
-  export PORTAINER_PASSWORD
+  export GOOGLE_CLIENT_SECRET
 fi
 
 if [ -n "${GOOGLE_API_KEY_FILE}" ]; then

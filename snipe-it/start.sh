@@ -5,7 +5,7 @@ if [ -n "${APP_KEY_FILE}" ]; then
   export APP_KEY
 fi
 
-if [ -n "$MAIL_ENV_PASSWORD_FILE}" ]; then
+if [ -n "${MAIL_ENV_PASSWORD_FILE}" ]; then
   MAIL_ENV_PASSWORD=$(cat "$MAIL_ENV_PASSWORD_FILE")
   export MAIL_ENV_PASSWORD
 fi
