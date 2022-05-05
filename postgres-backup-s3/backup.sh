@@ -95,7 +95,7 @@ copy_s3 () {
 POSTGRES_HOST_OPTS="-h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_EXTRA_OPTS"
 DUMP_START_TIME=$(date +"%Y-%m-%dT%H%M%SZ")
 
-for DB in "$POSTGRES_DATABASES"; do
+for DB in $POSTGRES_DATABASES; do
   echo "Creating dump of ${DB} from ${POSTGRES_HOST}..."
 
   DUMP_FILE="/tmp/${DB}.sql.gz"
