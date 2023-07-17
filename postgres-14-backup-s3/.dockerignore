@@ -1,0 +1,6 @@
+.env*
+docker-compose.yml
+fixtures
+makefile
+minio
+README.md

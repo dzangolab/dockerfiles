@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  backup:
+    build:
+      context: .
+    depends_on:
+      - minio
+      - psql14
+    environment:
+      POSTGRES_DATABASE: iso-3166
+      POSTGRES_HOST: psql14
+      POSTGRES_PASSWORD: secret
+      POSTGRES_USER: test
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_BUCKET: backups
+      S3_ENDPOINT: http://minio:9001
+      S3_SECRET_ACCESS_KEY: minioadmin
+      S3_PATH: backups
+    image: dzangolab/postgres-backup-s3:14
+
+  psql14:
+    environment:
+      POSTGRES_DB: iso-3166
+      POSTGRES_PASSWORD: secret
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: test
+    image: postgres:14.8
+    ports:
+      - 5432:5432
+    volumes:
+      - ./fixtures://docker-entrypoint-initdb.d
+
+  minio:
+    build:
+      context: ./minio
+      dockerfile: Dockerfile
+    command: server --address ":9001" --console-address ":9000"
+    environment:
+      MINIO_VOLUMES: /buckets
+    image: dzangolab/minio:local
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - minio-data:/buckets
+
+  adminer:
+    environment:
+      ADMINER_DEFAULT_SERVER: psql14
+    image: "adminer:latest"
+    ports:
+      - 8080:8080
+
+volumes:
+  minio-data:
