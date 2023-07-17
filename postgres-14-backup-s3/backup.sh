@@ -108,7 +108,7 @@ else
     IFS="$OIFS"
 
     SRC_FILE=dump.sql.gz
-    DEST_FILE=${DB}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
+    DEST_FILE=${DB}/${DB}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
 
     echo "Creating dump of ${DB} database from ${POSTGRES_HOST}..."
     pg_dump $POSTGRES_HOST_OPTS $DB | gzip > $SRC_FILE
