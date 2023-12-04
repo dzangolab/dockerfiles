@@ -82,7 +82,7 @@ if [ "${POSTGRES_BACKUP_ALL}" == "true" ]; then
   DEST_FILE=all_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
 
   echo "Creating dump of all databases from ${POSTGRES_HOST}..."
-  pg_dumpall -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER | gzip > $SRC_FILE
+  pg_dumpall $POSTGRES_HOST_OPTS | gzip > $SRC_FILE
 
   if [ "${ENCRYPTION_PASSWORD}" != "**None**" ]; then
     echo "Encrypting ${SRC_FILE}"
@@ -108,7 +108,8 @@ else
     IFS="$OIFS"
 
     SRC_FILE=dump.sql.gz
-    DEST_FILE=${DB}/${DB}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
+    DEST_PATH=$(date +"%Y")/$(date +"%m")/$(date +"%d")/
+    DEST_FILE=${DEST_PATH}/${DB}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
 
     echo "Creating dump of ${DB} database from ${POSTGRES_HOST}..."
     pg_dump $POSTGRES_HOST_OPTS $DB | gzip > $SRC_FILE
