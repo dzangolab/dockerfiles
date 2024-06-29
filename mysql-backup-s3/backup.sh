@@ -99,6 +99,8 @@ if [ ! -z "$(echo $MULTI_FILES | grep -i -E "(yes|true|1)")" ]; then
         S3_FILE="${S3_FILENAME}.${DB}.sql.gz"
       fi
 
+      S3_FILE = ${DB}/${S3_FILE}
+      
       copy_s3 $DUMP_FILE $S3_FILE
     else
       >&2 echo "Error creating dump of ${DB}"
