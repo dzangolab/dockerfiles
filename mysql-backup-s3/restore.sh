@@ -53,11 +53,10 @@ if [ "${S3_IAMROLE}" != "true" ]; then
 fi
 
 MYSQL_HOST_OPTS="-h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
-DUMP_START_TIME=$(date +"%Y-%m-%dT%H%M%SZ")
 
-copy_s3 () {
+fetch_s3 () {
   SRC_FILE=$1
-  DEST_FILE=$2
+  DEST=/tmp
 
   if [ "${S3_ENDPOINT}" == "**None**" ]; then
     AWS_ARGS=""
@@ -66,67 +65,20 @@ copy_s3 () {
   fi
 
   if [ "${S3_PREFIX}" == "**None**" ]; then
-    DEST="s3://$S3_BUCKET/${DEST_FILE}"
+    SRC="s3://$S3_BUCKET/${SRC_FILE}"
   else
-    DEST="s3://$S3_BUCKET/$S3_PREFIX/$DEST_FILE"
+    SRC="s3://$S3_BUCKET/$S3_PREFIX/$SRC_FILE"
   fi
 
-  echo "Uploading ${DEST_FILE} to S3..."
+  echo "Downloading ${SRC_FILE} to S3..."
 
-  cat $SRC_FILE | aws $AWS_ARGS s3 cp - $DEST
+  cat $SRC | aws $AWS_ARGS s3 cp - $DEST
 
   if [ $? != 0 ]; then
-    >&2 echo "Error uploading ${DEST_FILE} on S3"
+    >&2 echo "Error downloading ${SRC_FILE} from S3"
   fi
-
-  rm $SRC_FILE
 }
 
-# Multi file: yes
-if [ ! -z "$(echo $MULTI_FILES | grep -i -E "(yes|true|1)")" ]; then
-  if [ "${MYSQLDUMP_DATABASE}" == "--all-databases" ]; then
-    DATABASES=`mysql $MYSQL_HOST_OPTS -e "SHOW DATABASES;" | grep -Ev "(Database|information_schema|performance_schema|mysql|sys|innodb)"`
-  else
-    DATABASES=$MYSQLDUMP_DATABASE
-  fi
+mysql $MYSQL_HOST_OPTS < $DEST
 
-  for DB in $DATABASES; do
-    echo "Creating individual dump of ${DB} from ${MYSQL_HOST}..."
-
-    DUMP_FILE="/tmp/${DB}.sql.gz"
-
-    mysqldump $MYSQL_HOST_OPTS $MYSQLDUMP_OPTIONS --databases $DB | gzip > $DUMP_FILE
-
-    if [ $? == 0 ]; then
-      if [ "${S3_FILENAME}" == "**None**" ]; then
-        S3_FILE="${DB}/${DB}.${DUMP_START_TIME}.sql.gz"
-      else
-        S3_FILE="${DB}/${DB}.${S3_FILENAME}.sql.gz"
-      fi
-
-      copy_s3 $DUMP_FILE $S3_FILE
-    else
-      >&2 echo "Error creating dump of ${DB}"
-    fi
-  done
-# Multi file: no
-else
-  echo "Creating dump for ${MYSQLDUMP_DATABASE} from ${MYSQL_HOST}..."
-
-  DUMP_FILE="/tmp/dump.sql.gz"
-  mysqldump $MYSQL_HOST_OPTS $MYSQLDUMP_OPTIONS $MYSQLDUMP_DATABASE | gzip > $DUMP_FILE
-
-  if [ $? == 0 ]; then
-    if [ "${S3_FILENAME}" == "**None**" ]; then
-      S3_FILE="${DUMP_START_TIME}.dump.sql.gz"
-    else
-      S3_FILE="${S3_FILENAME}.sql.gz"
-    fi
-
-    copy_s3 $DUMP_FILE $S3_FILE
-  else
-    >&2 echo "Error creating dump of all databases"
-  fi
-fi
-
-echo "SQL backup finished"
+echo "Restore completed"
