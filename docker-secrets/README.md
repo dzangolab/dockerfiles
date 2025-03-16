@@ -104,3 +104,7 @@ Run docker compose:
 ```bash
 docker compose up -d
 ```
+
+## Debugging
+
+Set the `ENV_SECRETS_DEBUG` environment variable to `true` on the service. Check the service's logs.
