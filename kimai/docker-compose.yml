@@ -1,0 +1,68 @@
+services:
+  sqldb:
+    command: --default-storage-engine innodb
+    environment:
+      - MYSQL_DATABASE=kimai
+      - MYSQL_USER=kimai
+      - MYSQL_PASSWORD_FILE=/run/secrets/kimai-password
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/kimai-db-root-password
+    healthcheck:
+      test: mysqladmin -p$$MYSQL_ROOT_PASSWORD ping -h localhost
+      interval: 20s
+      start_period: 10s
+      timeout: 10s
+      retries: 3
+    image: mysql:8.3
+    restart: unless-stopped
+    secrets:
+      - kimai-db-root-password
+      - kimai-password
+    volumes:
+      - mysql:/var/lib/mysql
+
+  kimai:
+    depends_on:
+      - sqldb
+    environment:
+      - ADMINMAIL=admin@kimai.local
+      - ADMINPASS_FILE=/run/secrets/kimai-adminpass
+      - DATABASE_HOST=sqldb
+      - DATABASE_PASSWORD_FILE=/run/secrets/kimai-password
+      - DATABASE_USER=kimai
+#     - DATABASE_URL_FILE=/run/secrets/kimai-dsn
+      - ENV_SECRETS_DEBUG=1
+    image: dzangolab/kimai:0.4
+    ports:
+      - 8001:8001
+    restart: unless-stopped
+    secrets:
+      - kimai-adminpass
+      # - kimai-dsn
+      - kimai-password
+    volumes:
+      - data:/opt/kimai/var/data
+      - plugins:/opt/kimai/var/plugins
+
+  phpmyadmin:
+    environment:
+      PMA_HOST: "sqldb"
+    image: phpmyadmin:latest
+    ports:
+      - 8080:80
+    restart: unless-stopped
+
+secrets:
+  kimai-adminpass:
+    file: kimai-adminpass
+  kimai-db-root-password:
+    file: kimai-db-root-password
+  # kimai-dns:
+  #  file: kimai-dsn
+  kimai-password:
+    file: kimai-password
+
+volumes:
+  data:
+  mysql:
+  plugins:
+  

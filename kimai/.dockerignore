@@ -1,1 +1,5 @@
+.env
+.gitignore
 README.md
+*.yml
+kimai-*
