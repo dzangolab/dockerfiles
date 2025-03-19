@@ -1,6 +1,6 @@
 FROM dzangolab/docker-secrets:0.6 AS secrets
 
-FROM twentycrm/twenty:0.44
+FROM twentycrm/twenty:v0.44.4
 
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
 LABEL org.opencontainers.image.description="A customer Docker image for the Open-source [twentycrm](https=//twenty.com/) app with added support for docker secrets."
@@ -14,10 +14,10 @@ LABEL org.opencontainers.image.version="0.3"
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
-COPY ./app/start.sh /app/start.sh
-RUN chmod +x app/start.sh
+COPY ./start.sh start.sh
+RUN chmod +x start.sh
 
-CMD [ "app/start.sh" ]
+CMD [ "start.sh" ]
 
 ENV PG_DATABASE_USER = postgres
 ENV PG_DATABASE_PASSWORD = postgres
