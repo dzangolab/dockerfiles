@@ -13,7 +13,7 @@ services:
       && chown -R 1000:1000 /tmp/docker-data"
 
   server:
-    image: twentycrm/twenty:v0.44.4
+    image: twentycrm/twenty:v0.44
     volumes:
       - server-local-data:/app/packages/twenty-server/.local-storage
       - docker-data:/app/docker-data
@@ -21,8 +21,8 @@ services:
       - "3000:3000"
     environment:
       NODE_PORT: 3000
-      PG_DATABASE_USER: postgres
-      PG_DATABASE_PASSWORD_FILE: /run/secrets/postgres-password
+      PG_DATABASE_USER: twentycrm
+      PG_DATABASE_PASSWORD_FILE: /run/secrets/twentycrm-database-password
       PG_DATABASE_HOST: db
       # PG_DATABASE_URL_FILE: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/default
       SERVER_URL: http://localhost:3000
@@ -33,7 +33,7 @@ services:
       # STORAGE_S3_NAME: dzangolab-pulumi-state
       # STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
 
-      APP_SECRET_FILE: app-secrets
+      APP_SECRET_FILE: twentycrm-app-secret
 
       # MESSAGING_PROVIDER_GMAIL_ENABLED: ${MESSAGING_PROVIDER_GMAIL_ENABLED}
       # CALENDAR_PROVIDER_GOOGLE_ENABLED: ${CALENDAR_PROVIDER_GOOGLE_ENABLED}
@@ -71,16 +71,16 @@ services:
       retries: 10
     restart: always
     secrets:
-      - postgres-password
-      - app-secrets
+      - twentycrm-database-password
+      - twentycrm-app-secret
 
 
   worker:
-    image: twentycrm/twenty:v0.44.4
+    image: twentycrm/twenty:v0.44
     command: ["yarn", "worker:prod"]
     environment:
       PG_DATABASE_USER: postgres
-      PG_DATABASE_PASSWORD_FILE: /run/secrets/postgres-database-password
+      PG_DATABASE_PASSWORD_FILE: /run/secrets/twentycrm-database-password
       PG_DATABASE_HOST: db
       # PG_DATABASE_URL_FILE: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/default
       SERVER_URL: http://localhost:3000
@@ -92,7 +92,7 @@ services:
       # STORAGE_S3_NAME: dzangolab-pulumi-state
       # STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
 
-      APP_SECRET_FILE: /run/secrets/app-secrets
+      APP_SECRET_FILE: /run/secrets/twentycrm-app-secret
 
       # MESSAGING_PROVIDER_GMAIL_ENABLED: ${MESSAGING_PROVIDER_GMAIL_ENABLED}
       # CALENDAR_PROVIDER_GOOGLE_ENABLED: ${CALENDAR_PROVIDER_GOOGLE_ENABLED}
@@ -125,8 +125,8 @@ services:
         condition: service_healthy
     restart: always
     secrets:
-      - postgres-password
-      - app-secrets
+      - twentycrm-database-password
+      - twentycrm-app-secret
 
   db:
     image: postgres:16
@@ -134,7 +134,7 @@ services:
       - db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+      POSTGRES_PASSWORD_FILE: /run/secrets/twentycrm-database-password
     healthcheck:
       test: pg_isready -U postgres -h localhost -d postgres
       interval: 5s
@@ -142,21 +142,17 @@ services:
       retries: 10
     restart: always
     secrets:
-      - postgres-password
+      - twentycrm-database-password
 
   redis:
     image: redis
     restart: always
 
 secrets:
-  postgres-database-password:
-    file: postgres-database-password
-  postgres-password:
-    file: postgres-password
-  postgres-superuser-password:
-    file: postgres-superuser-password
-  app-secrets:
-    file: app-secrets
+  twentycrm-database-password:
+    file: twentycrm-database-password
+  twentycrm-app-secret:
+    file: twentycrm-app-secret
 
 volumes:
   docker-data:
