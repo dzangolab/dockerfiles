@@ -20,13 +20,13 @@ RUN chmod +x /app/start.sh
 
 CMD [ "/app/start.sh" ]
 
-# ENV PG_DATABASE_USER = twentycrm
-# ENV PG_DATABASE_PASSWORD = 
-# ENV PG_DATABASE_HOST = twentycrm
-# ENV PG_DATABASE_PORT = 5432
+ENV PG_DATABASE_USER = twentycrm
+ENV PG_DATABASE_PASSWORD = 
+ENV PG_DATABASE_HOST = twentycrm
+ENV PG_DATABASE_PORT = 5432
 
-# ENV SERVER_URL = http://localhost=3000
-# ENV SIGN_IN_PREFILLED = false
+ENV SERVER_URL = http://localhost=3000
+ENV SIGN_IN_PREFILLED = false
 
 # # APP_SECRET_FILE=MlkSY+KId5LpRRKrt9c+R9QjddVgPgHkO8o4QOogHHE=
 
