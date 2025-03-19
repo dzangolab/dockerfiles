@@ -13,7 +13,7 @@ services:
       && chown -R 1000:1000 /tmp/docker-data"
 
   server:
-    image: twentycrm/twenty:0.44
+    image: twentycrm/twenty:v0.44.4
     volumes:
       - server-local-data:/app/packages/twenty-server/.local-storage
       - docker-data:/app/docker-data
@@ -28,10 +28,10 @@ services:
       SERVER_URL: http://localhost:3000
       REDIS_URL: redis://redis:6379
 
-      STORAGE_TYPE: local
-      STORAGE_S3_REGION: ap-southeast-1.
-      STORAGE_S3_NAME: dzangolab-pulumi-state
-      STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
+      # STORAGE_TYPE: local
+      # STORAGE_S3_REGION: ap-southeast-1
+      # STORAGE_S3_NAME: dzangolab-pulumi-state
+      # STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
 
       APP_SECRET_FILE: app-secrets
 
@@ -65,7 +65,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: curl --fail http://localhost:3000/healthz
+      test: curl --fail http://localhost:3000/health
       interval: 5s
       timeout: 5s
       retries: 10
@@ -76,7 +76,7 @@ services:
 
 
   worker:
-    image: twentycrm/twenty:0.44
+    image: twentycrm/twenty:v0.44.4
     command: ["yarn", "worker:prod"]
     environment:
       PG_DATABASE_USER: postgres
@@ -87,10 +87,10 @@ services:
       REDIS_URL: redis://redis:6379
       DISABLE_DB_MIGRATIONS: "true" # it already runs on the server
 
-      STORAGE_TYPE: local
-      STORAGE_S3_REGION: ap-southeast-1.
-      STORAGE_S3_NAME: dzangolab-pulumi-state
-      STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
+      # STORAGE_TYPE: local
+      # STORAGE_S3_REGION: ap-southeast-1.
+      # STORAGE_S3_NAME: dzangolab-pulumi-state
+      # STORAGE_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
 
       APP_SECRET_FILE: /run/secrets/app-secrets
 
@@ -133,10 +133,10 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${PG_DATABASE_USER:-postgres}
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
     healthcheck:
-      test: pg_isready -U ${PG_DATABASE_USER:-postgres} -h localhost -d postgres
+      test: pg_isready -U postgres -h localhost -d postgres
       interval: 5s
       timeout: 5s
       retries: 10
