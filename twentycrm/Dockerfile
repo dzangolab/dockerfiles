@@ -1,6 +1,6 @@
 FROM dzangolab/docker-secrets:0.6 AS secrets
 
-FROM twentycrm/twenty:v0.44.4
+FROM twentycrm/twenty:v0.44
 
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
 LABEL org.opencontainers.image.description="A customer Docker image for the Open-source [twentycrm](https://twenty.com/) app with added support for docker secrets."
@@ -28,7 +28,7 @@ ENV PG_DATABASE_PORT = 5432
 ENV SERVER_URL = http://localhost=3000
 ENV SIGN_IN_PREFILLED = false
 
-# # APP_SECRET_FILE=MlkSY+KId5LpRRKrt9c+R9QjddVgPgHkO8o4QOogHHE=
+# # APP_SECRET_FILE=first_random_string
 
 # ENV STORAGE_TYPE = local
 
