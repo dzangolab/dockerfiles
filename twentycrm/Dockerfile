@@ -10,19 +10,19 @@ LABEL org.opencontainers.image.source="https://github.com/dzangolab/dockerfiles/
 LABEL org.opencontainers.image.title="TwentyCRM"
 LABEL org.opencontainers.image.url="https://dzango.com"
 LABEL org.opencontainers.image.vendor="Dzango Technologies"
-LABEL org.opencontainers.image.version="local"
+LABEL org.opencontainers.image.version="0.1"
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
 USER root
-COPY ./app/start.sh /app/start.sh
-RUN chmod +x /app/start.sh
+COPY ./start.sh /start.sh
+RUN chmod +x /start.sh
 
-CMD [ "/app/start.sh" ]
+CMD [ "/start.sh" ]
 
 ENV PG_DATABASE_USER = twentycrm
 ENV PG_DATABASE_PASSWORD = 
-ENV PG_DATABASE_HOST = twentycrm
+ENV PG_DATABASE_HOST = postgres
 ENV PG_DATABASE_PORT = 5432
 
 ENV SERVER_URL = http://localhost=3000

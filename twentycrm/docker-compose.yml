@@ -24,7 +24,7 @@ services:
       PG_DATABASE_USER: twentycrm
       PG_DATABASE_PASSWORD_FILE: /run/secrets/twentycrm-database-password
       PG_DATABASE_HOST: db
-      # PG_DATABASE_URL_FILE: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/default
+      PG_DATABASE_URL: 
       SERVER_URL: http://localhost:3000
       REDIS_URL: redis://redis:6379
 
@@ -79,10 +79,9 @@ services:
     image: twentycrm/twenty:v0.44
     command: ["yarn", "worker:prod"]
     environment:
-      PG_DATABASE_USER: postgres
+      PG_DATABASE_USER: twentycrm
       PG_DATABASE_PASSWORD_FILE: /run/secrets/twentycrm-database-password
       PG_DATABASE_HOST: db
-      # PG_DATABASE_URL_FILE: postgres://${PG_DATABASE_USER:-postgres}:${PG_DATABASE_PASSWORD:-postgres}@${PG_DATABASE_HOST:-db}:${PG_DATABASE_PORT:-5432}/default
       SERVER_URL: http://localhost:3000
       REDIS_URL: redis://redis:6379
       DISABLE_DB_MIGRATIONS: "true" # it already runs on the server
