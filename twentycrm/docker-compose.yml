@@ -24,7 +24,6 @@ services:
       PG_DATABASE_USER: twentycrm
       PG_DATABASE_PASSWORD_FILE: /run/secrets/twentycrm-database-password
       PG_DATABASE_HOST: db
-      PG_DATABASE_URL: 
       SERVER_URL: http://localhost:3000
       REDIS_URL: redis://redis:6379
 

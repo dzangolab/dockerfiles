@@ -1,4 +1,4 @@
-FROM dzangolab/docker-secrets:0.6 AS secrets
+FROM dzangolab/docker-secrets:0.6.sh AS secrets
 
 FROM twentycrm/twenty:v0.44
 
@@ -15,20 +15,20 @@ LABEL org.opencontainers.image.version="0.1"
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
 USER root
-COPY ./start.sh /start.sh
-RUN chmod +x /start.sh
+COPY ./app/start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-CMD [ "/start.sh" ]
+ENTRYPOINT [ "/app/start.sh" ]
 
-ENV PG_DATABASE_USER = twentycrm
-ENV PG_DATABASE_PASSWORD = 
-ENV PG_DATABASE_HOST = postgres
-ENV PG_DATABASE_PORT = 5432
+# ENV PG_DATABASE_USER = twentycrm
+# ENV PG_DATABASE_PASSWORD = 
+# ENV PG_DATABASE_HOST = postgres
+# ENV PG_DATABASE_PORT = 5432
 
-ENV SERVER_URL = http://localhost=3000
-ENV SIGN_IN_PREFILLED = false
+# ENV SERVER_URL = http://localhost=3000
+# ENV SIGN_IN_PREFILLED = false
 
-# # APP_SECRET_FILE=first_random_string
+# ENV APP_SECRET =
 
 # ENV STORAGE_TYPE = local
 
