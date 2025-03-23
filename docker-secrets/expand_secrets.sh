@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -eu
 
@@ -11,20 +11,19 @@ env_secret_debug()
 
 expand_secret() {
   file_var=$1
-  eval "secret_path=\$$file_var"  # Get the value of the _FILE variable
+  secret_path="${!file_var}"
 
   suffix="_FILE"
-  var=${file_var%$suffix}  # Remove the _FILE suffix to get the target variable name
+  var=${file_var/%$suffix}
 
-  current_value=$(eval "echo \${$var:-}")
-  if [ -n "$current_value" ]; then
+  if [ "${!var:-}" ]; then
     echo >&2 "error: $var is already set. $file_var will be ignored"
   else
     if [ -f "$secret_path" ]; then
-      secret_value=$(cat "${secret_path}" | tr -d '\n')  # Read file and remove newlines
-      export -- "${var}"="${secret_value}"
+      secret_value=$(cat "${secret_path}")
+      export -- "${var}"="${secret_value}"    
       unset "$file_var"
-      env_secret_debug "Expanded variable: $var=${secret_value}"
+      env_secret_debug "Expanded variable: $var=${!var}"
     else
       env_secret_debug "Path to secret $secret_path does not exist!"
     fi
@@ -34,7 +33,7 @@ expand_secret() {
 expand_secrets() {
   for file_var in $(printenv | cut -f1 -d"=" | grep _FILE$)
   do
-    expand_secret "$file_var"
+    expand_secret $file_var
   done
 
   if [ ! -z "${ENV_SECRETS_DEBUG:-}" ]; then
