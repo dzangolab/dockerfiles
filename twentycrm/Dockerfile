@@ -18,6 +18,7 @@ USER root
 COPY ./app/start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
+CMD ["node", "dist/src/main"]
 ENTRYPOINT [ "/app/start.sh" ]
 
 # ENV PG_DATABASE_USER = twentycrm
