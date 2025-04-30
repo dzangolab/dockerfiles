@@ -1,9 +1,6 @@
 #!/bin/bash -eux
 
-# Source secrets if the file exists
-if [ -f /expand_secrets.sh ]; then
-  source /expand_secrets.sh
-fi
+source /expand_secrets.sh
 
 # If DATABASE_URL is not set, construct it from individual components
 if [ -z "${DATABASE_URL:-}" ]; then
@@ -29,9 +26,6 @@ if [ -z "${DATABASE_URL:-}" ]; then
 
     encoded_password=$(urlencode "$DATABASE_PASSWORD")
     DATABASE_URL="mysql://${DATABASE_USER}:${encoded_password}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}"
-  else
-    # If no password is provided, construct URL without password
-    DATABASE_URL="mysql://${DATABASE_USER}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}"
   fi
   export DATABASE_URL
 fi
