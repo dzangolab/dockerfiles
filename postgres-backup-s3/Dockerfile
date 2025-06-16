@@ -1,38 +1,32 @@
-FROM alpine:3.17
+FROM python:3.11-slim
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 
-ENV GLIBC_VER=2.33-r0
-
-# install glibc compatibility for alpine
-RUN apk --no-cache add \
-        binutils \
-        curl \
-    && curl -sL https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub -o /etc/apk/keys/sgerrand.rsa.pub \
-    && curl -sLO https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VER}/glibc-${GLIBC_VER}.apk \
-    && curl -sLO https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VER}/glibc-bin-${GLIBC_VER}.apk \
-    && curl -sLO https://github.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VER}/glibc-i18n-${GLIBC_VER}.apk \
-    && apk add --no-cache \
-        glibc-${GLIBC_VER}.apk \
-        glibc-bin-${GLIBC_VER}.apk \
-        glibc-i18n-${GLIBC_VER}.apk \
-        postgresql \
-    && /usr/glibc-compat/bin/localedef -i en_US -f UTF-8 en_US.UTF-8 \
-    && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip \
-    && unzip awscliv2.zip \
-    && aws/install \
-    && rm -rf \
-        awscliv2.zip \
-        aws \
-        /usr/local/aws-cli/v2/*/dist/aws_completer \
-        /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
-        /usr/local/aws-cli/v2/*/dist/awscli/examples \
-        glibc-*.apk \
-    && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.6/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
-    && chmod u+x /usr/local/bin/go-cron \
-    && apk --no-cache del \
-        binutils \
-        curl \
-    && rm -rf /var/cache/apk/*
+RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /usr/share/keyrings/postgresql.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+      > /etc/apt/sources.list.d/pgdg.list && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    locales \
+    postgresql-client-17 \
+ && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+ && locale-gen \
+ && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip \
+ && unzip awscliv2.zip \
+ && ./aws/install \
+ && rm -rf \
+    awscliv2.zip \
+    aws \
+    /usr/local/aws-cli/v2/*/dist/aws_completer \
+    /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
+    /usr/local/aws-cli/v2/*/dist/awscli/examples \
+ && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.6/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
+ && chmod +x /usr/local/bin/go-cron \
+ && apt-get remove --purge -y curl unzip \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
 
 ADD run.sh run.sh
 ADD backup.sh backup.sh
@@ -53,4 +47,4 @@ ENV S3_S3V4 no
 ENV S3_SECRET_ACCESS_KEY **None**
 ENV SCHEDULE **None**
 
-CMD ["sh", "run.sh"]
+CMD ["bash", "run.sh"]
