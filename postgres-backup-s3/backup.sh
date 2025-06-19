@@ -60,6 +60,12 @@ if [ "${POSTGRES_PASSWORD}" = "**None**" ]; then
   exit 1
 fi
 
+if [ -z ${POSTGRES_VERSION+x} ]; then
+  POSTGRES_VERSION=""
+else
+  POSTGRES_VERSION="${POSTGRES_VERSION}/"
+fi
+
 if [ "${S3_ENDPOINT}" == "**None**" ]; then
   AWS_ARGS=""
 else
@@ -85,7 +91,7 @@ if [ "${POSTGRES_BACKUP_ALL}" == "true" ]; then
 
   for DB in $DB_LIST; do
     SRC_FILE=dump.sql.gz
-    DEST_FILE="${DB}.sql.gz"
+    DEST_FILE=${DB}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
 
     echo "Creating dump of ${DB} database from ${POSTGRES_HOST}..."
     if ! pg_dump $POSTGRES_HOST_OPTS "$DB" | gzip > "$SRC_FILE"; then
@@ -104,11 +110,10 @@ if [ "${POSTGRES_BACKUP_ALL}" == "true" ]; then
       DEST_FILE="${DEST_FILE}.enc"
     fi
 
-    mkdir -p /backups/$(date +%Y-%m-%d)
-    cp $SRC_FILE /backups/$(date +%Y-%m-%d)/$DEST_FILE
-
     echo "Uploading dump to $S3_BUCKET"
-    cat $SRC_FILE | aws $AWS_ARGS s3 cp - "s3://${S3_BUCKET}${S3_PREFIX}${DEST_FILE}" || exit 2
+    echo "Uploaded to s3://${S3_BUCKET}${S3_PREFIX}${POSTGRES_VERSION}${DEST_FILE}"
+    cat $SRC_FILE | aws $AWS_ARGS s3 cp - "s3://${S3_BUCKET}${S3_PREFIX}${POSTGRES_VERSION}${DEST_FILE}" || exit 2
+
 
     echo "SQL backup uploaded successfully"
     rm -rf $SRC_FILE
@@ -136,9 +141,6 @@ else
       SRC_FILE="${SRC_FILE}.enc"
       DEST_FILE="${DEST_FILE}.enc"
     fi
-
-    mkdir -p /backups/$(date +%Y-%m-%d)
-    cp $SRC_FILE /backups/$(date +%Y-%m-%d)/$DEST_FILE
 
     echo "Uploading dump to $S3_BUCKET"
     cat $SRC_FILE | aws $AWS_ARGS s3 cp - "s3://${S3_BUCKET}${S3_PREFIX}${DEST_FILE}" || exit 2
