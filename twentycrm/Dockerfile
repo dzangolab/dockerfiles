@@ -1,16 +1,16 @@
 FROM dzangolab/docker-secrets:0.6.sh AS secrets
 
-FROM twentycrm/twenty:v0.44
+FROM twentycrm/twenty:v0.55.9
 
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
-LABEL org.opencontainers.image.description="A customer Docker image for the Open-source [twentycrm](https://twenty.com/) app with added support for docker secrets."
+LABEL org.opencontainers.image.description="A custom Docker image for the Open-source [twentycrm](https://twenty.com/) app with added support for docker secrets."
 LABEL org.opencontainers.image.documentation="https://github.com/dzangolab/dockerfiles/tree/main/twentycrm"
 LABEL org.opencontainers.image.licenses="AGPL-3.0"
 LABEL org.opencontainers.image.source="https://github.com/dzangolab/dockerfiles/tree/main/twentycrm"
 LABEL org.opencontainers.image.title="TwentyCRM"
 LABEL org.opencontainers.image.url="https://dzango.com"
 LABEL org.opencontainers.image.vendor="Dzango Technologies"
-LABEL org.opencontainers.image.version="0.1"
+LABEL org.opencontainers.image.version="0.55.9"
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
