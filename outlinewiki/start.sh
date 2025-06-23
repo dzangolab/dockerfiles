@@ -1,5 +1,7 @@
 #! /bin/sh
 
+source /expand_secrets.sh
+
 set -e
 
 if [ -n "${AWS_ACCESS_KEY_ID_FILE}" ]; then
