@@ -1,0 +1,113 @@
+version: "3.8"
+
+services:
+  outline:
+    image: dzangolab/outline:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Core configuration
+      - URL=http://localhost:3000
+      - PORT=3000
+      - PGSSLMODE=disable 
+      - FORCE_HTTPS=false
+      - NODE_ENV=production
+      
+      # # Database
+      - DATABASE_URL_FILE=/run/secrets/database_url
+      - DATABASE_SSL=disable
+      
+      # # Redis
+      - REDIS_URL=redis://redis:6379
+      
+      # # Secrets
+      - SECRET_KEY_FILE=/run/secrets/secret_key
+      - UTILS_SECRET_FILE=/run/secrets/utils_secret
+      
+      # Storage
+      - STORAGE_TYPE=local
+      - LOCAL_STORAGE_PATH=/var/lib/outline/data
+      
+      # Email (using MailHog)
+      # - ENABLED_SIGNIN_EMAIL=true
+      # - SMTP_HOST=mailhog
+      # - SMTP_PORT=1025
+      # - SMTP_SECURE=false
+      # - SMTP_USER_FILE=/run/secrets/smtp_username
+      # - SMTP_PASS_FILE=/run/secrets/smtp_password
+      # - FROM_ADDRESS=outline@example.com
+      # - REPLY_TO=outline@example.com
+      
+      # Authentication
+      - GOOGLE_CLIENT_ID_FILE=/run/secrets/google_client_id
+      - GOOGLE_CLIENT_SECRET_FILE=/run/secrets/google_client_secret
+      
+      # # AWS (optional)
+      # - AWS_ACCESS_KEY_FILE=/run/secrets/aws_access_key_id
+      # - AWS_SECRET_KEY_FILE=/run/secrets/aws_secret_access_key
+      # - AWS_S3_BUCKET=outline-test
+      # - AWS_S3_MAX_SIZE=26214400
+      
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+      - postgres
+      # - mailhog
+    secrets:
+      - database_url
+      - secret_key
+      - utils_secret
+      - smtp_username
+      - smtp_password
+      - google_client_id
+      - google_client_secret
+      - aws_access_key_id
+      - aws_secret_access_key
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: outline
+      POSTGRES_PASSWORD: outline
+      POSTGRES_DB: outline
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+
+  # mailhog:
+  #   image: mailhog/mailhog
+  #   ports:
+  #     - "8025:8025" # Web UI
+  #     - "1025:1025" # SMTP server
+
+volumes:
+  postgres_data:
+  outline_data:
+
+secrets:
+  database_url:
+    file: ./secrets/database_url
+  secret_key:
+    file: ./secrets/secret_key
+  utils_secret:
+    file: ./secrets/utils_secret
+  smtp_username:
+    file: ./secrets/smtp_username
+  smtp_password:
+    file: ./secrets/smtp_password
+  google_client_id:
+    file: ./secrets/google_client_id
+  google_client_secret:
+    file: ./secrets/google_client_secret
+  slack_client_id:
+    file: ./secrets/slack_client_id
+  slack_client_secret:
+    file: ./secrets/slack_client_secret
+  aws_access_key_id:
+    file: ./secrets/aws_access_key_id
+  aws_secret_access_key:
+    file: ./secrets/aws_secret_access_key
