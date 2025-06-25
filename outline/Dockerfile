@@ -1,6 +1,6 @@
 FROM dzangolab/docker-secrets:0.6 AS secrets
 
-FROM outlinewiki/outline:0.84
+FROM outlinewiki/outline:0.60.3
 
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
 LABEL org.opencontainers.image.description="A customer Docker image outline app with added support for docker secrets."
