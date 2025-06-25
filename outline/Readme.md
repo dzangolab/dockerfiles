@@ -8,7 +8,17 @@ This image is based on the [outlinewiki/outline:0.84](https://hub.docker.com/lay
 
 ## Environment variables
 
-WIP
+The image supports all the [original environment variables](https://github.com/outline/outline/blob/main/.env.sample) from the base image, with the addition of:
+
+* `DATABASE_HOST` - The database host
+* `DATABASE_NAME` - The database name (default: `outline`)
+* `DATABASE_PASSWORD` - The database password
+* `DATABASE_PORT` - The database port (default: `5432`)
+* `DATABASE_USER` - The database user (default: `outline`)
+
+These are used to construct the `DATABASE_URL` environment variable unless that variable is present.
+
+## Testing locally
 
 If you want to test it locally, create a google client id and secret if you don't have one:
 

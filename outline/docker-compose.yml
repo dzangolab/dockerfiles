@@ -15,6 +15,7 @@ services:
       - NODE_ENV=production
       
       # # Database
+      # - DATABAE_PASSWORD_FILE=/run/secrets/database_password
       - DATABASE_URL_FILE=/run/secrets/database_url
       - DATABASE_SSL=disable
       
@@ -29,7 +30,7 @@ services:
       - STORAGE_TYPE=local
       - LOCAL_STORAGE_PATH=/var/lib/outline/data
       
-      # Email (using MailHog)
+      # Email
       # - ENABLED_SIGNIN_EMAIL=true
       # - SMTP_HOST=mailhog
       # - SMTP_PORT=1025
@@ -43,7 +44,7 @@ services:
       - GOOGLE_CLIENT_ID_FILE=/run/secrets/google_client_id
       - GOOGLE_CLIENT_SECRET_FILE=/run/secrets/google_client_secret
       
-      # # AWS (optional)
+      # # AWS
       # - AWS_ACCESS_KEY_FILE=/run/secrets/aws_access_key_id
       # - AWS_SECRET_KEY_FILE=/run/secrets/aws_secret_access_key
       # - AWS_S3_BUCKET=outline-test
