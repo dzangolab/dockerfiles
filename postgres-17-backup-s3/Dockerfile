@@ -1,0 +1,50 @@
+FROM python:3.11-slim
+LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
+
+RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /usr/share/keyrings/postgresql.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+      > /etc/apt/sources.list.d/pgdg.list && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    locales \
+    postgresql-client-17 \
+ && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+ && locale-gen \
+ && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip \
+ && unzip awscliv2.zip \
+ && ./aws/install \
+ && rm -rf \
+    awscliv2.zip \
+    aws \
+    /usr/local/aws-cli/v2/*/dist/aws_completer \
+    /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
+    /usr/local/aws-cli/v2/*/dist/awscli/examples \
+ && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.6/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
+ && chmod +x /usr/local/bin/go-cron \
+ && apt-get remove --purge -y curl unzip \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
+ADD run.sh run.sh
+ADD backup.sh backup.sh
+
+ENV POSTGRES_DATABASES **None**
+ENV POSTGRES_EXTRA_OPTS ''
+ENV POSTGRES_HOST **None**
+ENV POSTGRES_PASSWORD **None**
+ENV POSTGRES_PORT 5432
+ENV POSTGRES_USER **None**
+ENV S3_ACCESS_KEY_ID **None**
+ENV S3_BUCKET **None**
+ENV S3_ENDPOINT **None**
+ENV S3_FILENAME **None**
+ENV S3_PREFIX 'backup'
+ENV S3_REGION us-west-1
+ENV S3_S3V4 no
+ENV S3_SECRET_ACCESS_KEY **None**
+ENV SCHEDULE **None**
+
+CMD ["bash", "run.sh"]
