@@ -1,4 +1,4 @@
-FROM dzangolab/docker-secrets:0.6 AS secrets
+FROM dzangolab/docker-secrets:0.6.sh AS secrets
 
 FROM outlinewiki/outline:0.60.3
 
@@ -18,4 +18,4 @@ USER root
 COPY ./start.sh /start.sh
 RUN chmod +x /start.sh
 
-CMD ["bash", "/start.sh"]
+CMD ["sh", "/start.sh"]
