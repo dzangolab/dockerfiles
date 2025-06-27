@@ -10,7 +10,7 @@ LABEL org.opencontainers.image.source="https://github.com/dzangolab/dockerfiles/
 LABEL org.opencontainers.image.title="Outline"
 LABEL org.opencontainers.image.url="https://dzango.com"
 LABEL org.opencontainers.image.vendor="Dzango Technologies"
-LABEL org.opencontainers.image.version=""
+LABEL org.opencontainers.image.version="0.60.3"
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
