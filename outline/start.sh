@@ -19,6 +19,21 @@ export_secret() {
   fi
 }
 
+# List of possible secrets Outline might use
+export_secret "AWS_ACCESS_KEY_ID"
+export_secret "AWS_SECRET_ACCESS_KEY"
+export_secret "DATABASE_URL"
+export_secret "DATABASE_PASSWORD"
+export_secret "GOOGLE_CLIENT_ID"
+export_secret "GOOGLE_CLIENT_SECRET"
+export_secret "SECRET_KEY"
+export_secret "SMTP_PASSWORD"
+export_secret "UTILS_SECRET"
+export_secret "OIDC_CLIENT_SECRET"
+export_secret "SLACK_APP_ID"
+export_secret "SLACK_APP_SECRET"
+export_secret "SLACK_VERIFICATION_TOKEN"
+
 # If DATABASE_URL is not set, construct it from individual components
 if [ -z "${DATABASE_URL:-}" ]; then
   # URL encode the password if it's provided in plain text
