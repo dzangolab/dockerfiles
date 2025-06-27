@@ -16,11 +16,11 @@ services:
       - NODE_ENV=production-ssl-disabled
       # - SEQUELIZE_ENV=production-ssl-disabled
       # - SEQUELIZE_DIALECT_OPTIONS_SSL=false
-      - WEBPACK=false
+      # - WEBPACK=false
       
       # # Database
       # - DATABAE_PASSWORD_FILE=/run/secrets/database_password
-      - DATABASE_URL=postgres://outline:outline@postgres:5432/outline?sslmode=disable
+      - DATABASE_URL=postgres://outline:outline@postgres:5432/outline
       # - DATABASE_URL_TEST_FILE=postgres://outline:outline@postgres:5432/outline?ssl=false
 
       # # Redis
