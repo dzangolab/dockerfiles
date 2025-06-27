@@ -19,7 +19,7 @@ set -e
 #   fi
 # }
 
-# # If DATABASE_URL is not set, construct it from individual components
+# If DATABASE_URL is not set, construct it from individual components
 # if [ -z "${DATABASE_URL:-}" ]; then
 #   # URL encode the password if it's provided in plain text
 #   if [ -n "${DATABASE_PASSWORD:-}" ]; then
@@ -50,16 +50,15 @@ set -e
 #   export DATABASE_URL
 # fi
 
-wait_for_db() {
-  until nc -z postgres 5432; do
-    echo "Waiting for PostgreSQL"
-    sleep 2
-  done
-}
+# wait_for_db() {
+#   until nc -z postgres 5432; do
+#     echo "Waiting for PostgreSQL"
+#     sleep 2
+#   done
+# }
 
-# Only run migrations if we're the main process
-wait_for_db
-echo "Running database migrations..."
-yarn db:migrate
+# wait_for_db
+# echo "Running database migrations..."
+# yarn db:migrate
 
 exec yarn start

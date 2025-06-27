@@ -2,23 +2,23 @@ version: "3.8"
 
 services:
   outline:
-    image: dzangolab/outline:0.60.3
+    image: dzangolab/outline:local
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       # Core configuration
+      - PGSSLMODE=disable
+      - DATABASE_SSL=false
       - URL=http://localhost:3000
       - PORT=3000
-      - PGSSLMODE=disable
       - FORCE_HTTPS=false
       - NODE_ENV=production
       
       # # Database
       # - DATABAE_PASSWORD_FILE=/run/secrets/database_password
-      - DATABASE_URL=postgres://outline:outline@postgres:5432/outline
+      - DATABASE_URL=postgres://outline:outline@postgres:5432/outline?sslmode=disable  
       # - DATABASE_URL_TEST_FILE=postgres://outline:outline@postgres:5432/outline?ssl=false
-      - DATABASE_SSL=false
 
       # # Redis
       - REDIS_URL=redis://redis:6379
@@ -45,9 +45,9 @@ services:
       # - GOOGLE_CLIENT_ID_FILE=/run/secrets/google_client_id
       # - GOOGLE_CLIENT_SECRET_FILE=/run/secrets/google_client_secret
       
-      # # # AWS
-      # - AWS_S3_UPLOAD_BUCKET_URL=
-      # - AWS_S3_UPLOAD_BUCKET_NAME=
+      # # AWS
+      - AWS_S3_UPLOAD_BUCKET_URL=
+      - AWS_S3_UPLOAD_BUCKET_NAME=
       # - AWS_ACCESS_KEY_FILE=/run/secrets/aws_access_key_id
       # - AWS_SECRET_KEY_FILE=/run/secrets/aws_secret_access_key
       # - AWS_S3_BUCKET=outline-test
