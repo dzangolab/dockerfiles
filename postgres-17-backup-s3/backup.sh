@@ -86,12 +86,18 @@ else
   S3_PREFIX="/${S3_PREFIX}/"
 fi
 
+if [ -z ${S3_SUFFIX+x} ]; then
+  S3_SUFFIX=""
+else
+  S3_SUFFIX="-${S3_SUFFIX}"
+fi
+
 if [ "${POSTGRES_BACKUP_ALL}" == "true" ]; then
   DB_LIST=$(psql $POSTGRES_HOST_OPTS -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'default';")
 
   for DB in $DB_LIST; do
     SRC_FILE=dump.sql.gz
-    DEST_FILE=${DB}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
+    DEST_FILE=${DB}${S3_SUFFIX}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
 
     echo "Creating dump of ${DB} database from ${POSTGRES_HOST}..."
     if ! pg_dump $POSTGRES_HOST_OPTS "$DB" | gzip > "$SRC_FILE"; then
@@ -126,7 +132,7 @@ else
     IFS="$OIFS"
 
     SRC_FILE=dump.sql.gz
-    DEST_FILE=${DB}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
+    DEST_FILE=${DB}${S3_SUFFIX}_$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
 
     echo "Creating dump of ${DB} database from ${POSTGRES_HOST}..."
     pg_dump $POSTGRES_HOST_OPTS $DB | gzip > $SRC_FILE
