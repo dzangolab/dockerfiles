@@ -60,7 +60,7 @@ bash entrypoint.sh
 * Declare it as your image's entrypoint.
 
 ```Dockerfile
-FROM dzangolab/docker-secrets:0.6 as secrets
+FROM dzangolab/docker-secrets:latest as secrets
 
 FROM amazing-app:latest 
 
