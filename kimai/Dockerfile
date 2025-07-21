@@ -1,4 +1,4 @@
-FROM dzangolab/docker-secrets:0.6 AS secrets
+FROM dzangolab/docker-secrets:latest AS secrets
 
 FROM kimai/kimai2:apache-2.37.0
 
