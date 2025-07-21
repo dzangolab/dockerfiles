@@ -14,7 +14,7 @@ The image supports all the [original environment variables](https://www.kimai.or
 * `DATABASE_NAME` - The database name (default: `kimai`)
 * `DATABASE_PASSWORD` - The database password
 * `DATABASE_PORT` - The database port (default: `3306`)
-* `DATABASE_USER` - The database user
+* `DATABASE_USER` - The database user (default: `kimai`)
 * `ENV_SECRETS_DEBUG` - A boolean flag for debugging the secret expansion process
 
 These are used to construct the `DATABASE_URL` environment variable unless that variable is present.
