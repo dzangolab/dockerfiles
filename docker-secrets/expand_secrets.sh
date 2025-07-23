@@ -37,9 +37,7 @@ expand_secrets() {
   done
 
   if [ ! -z "${ENV_SECRETS_DEBUG:-}" ]; then
-      echo -e "\n\033[1mExpanded environment variables\033[0m"
-      printenv
+    echo -e "\n\033[1mExpanded environment variables\033[0m"
+    printenv
   fi
 }
-
-expand_secrets
