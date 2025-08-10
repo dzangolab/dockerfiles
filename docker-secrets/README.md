@@ -20,8 +20,8 @@ Since the `postgres` image natively supports Docker secrets, there is no need to
 
 The `dzangolab/docker-secrets` provides a script named `expand_secrets.sh` that will parse all environment variables ending with `_FILE`, and for each such variable found, check that its value points to an existing file, and if true, create an environment variable where:
 
-* the name will be the `_FILE` env var without the `_FILE` suffix (so `DATABASE_PASSWORD_FILE` becomes `DATABASE_PASSWORD`)
-* the value will be the secret value (ie the content of the file located at the path that is the value of the `_FILE` env var.)
+* the environment variable's name will be the `_FILE` env var without the `_FILE` suffix (eg `DATABASE_PASSWORD_FILE` becomes `DATABASE_PASSWORD`)
+* the environment variable's value will be the secret value (ie the content of the file located at the path that is the value of the `_FILE` env var.)
 
 This script can be COPY'ed to your Docker image in a multi-stage build.
 
@@ -29,17 +29,21 @@ This script can be COPY'ed to your Docker image in a multi-stage build.
 
 Note: This image is not meant to be used on its own, but as a stage in a multi-stage docker build.
 
-Let's assume you want to add support for Docker secrets to the `amazing-app:latest` Docker image that does not support Docker secrets natively. (This is a dummy image name that only serves as an example).
+Let's assume you want to add support for Docker secrets to your app. Your original dockerfile declares a start script at the path `/path/to.my/apps/start.sh`. 
 
 ### Image entrypoint
 
-Modify you application' startup script (typically saved as `entrypoint.sh`) to include the `docker-secrets` image's `expand_secrets` script.
+Modify you application' startup script to include the `docker-secrets` image's `expand_secrets` script.
+
+Here we assume the script will be available in the same folder as your startup script. Adjust the path as required.
 
 ```bash
 #!/bin/bash
 
-. /expand_secrets.sh
+# Source the script
+. expand_secrets.sh
 
+# Run the `expand_secrets` command defined in the script
 expand_secrets 
 
 // Your app's original start command(s)
@@ -47,21 +51,28 @@ expand_secrets
 
 ### Dockerfile
 
+Modify your app's Dockerfile as follows:
+
+* Include the `dzangolab/docker-secrets` image as a `secrets` target build
+* COPY the `expand_secrets.sh` script from the `secrets` target
+
+The `expand_secrets.sh` script must be COPY'd to a path in your image that is consistent with the path used in your image's startup script. This is typically your image's `WORKDIR`.
 
 ```Dockerfile
 # Include `dzangolab.docker-secrets` as a the `secrets` target build
 FROM dzangolab/docker-secrets:latest as secrets
 
 # Your original base image 
-FROM amazing-app:latest 
+FROM ... 
+
+# Image workdir
+# WORKDIR /path/to /workdir
 
 # Copy `expand-secrets.sh` from `dzangolab/docker-secrets` image
-COPY --from=secrets /expand_secrets.sh expand_secrets.sh
+COPY --from=secrets /expand_secrets.sh /path/to/workdir/expand_secrets.sh
 
-# Copy your app's entrypoint script (the following should be as per your original Dockerfile)
-COPY ./entrypoint.sh /entrypoint.sh
+# Rest of your Dockerfile
 
-ENTRYPOINT /entrypoint.sh
 ```
 
 Build your Docker image and push it to the Docker registry of your choice.
