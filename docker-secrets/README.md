@@ -25,6 +25,16 @@ The `dzangolab/docker-secrets` provides a script named `expand_secrets.sh` that 
 
 This script can be COPY'ed to your Docker image in a multi-stage build.
 
+## Requirements
+
+The `expand_secrets.sh` script makes use of the `${!...}` bashism (indirect variable expansion) which is not availablke in other POSIX_compliant shells. If your image does not include `bash` (eg Alpine linux, Ubuntu) you will need to install it.
+
+For example on  Alpine Linux, add the following line to your Dockerfile:
+
+```
+RUN apk add --no-cache bash
+```
+
 ## Usage
 
 Note: This image is not meant to be used on its own, but as a stage in a multi-stage docker build.
