@@ -35,8 +35,9 @@ pgbackups3:
 ```
 ## Environment variables
 
+- `ENCRYPTION_PASSWORD` If not empty, nackups will be encrypted using this password
+- `POSTGRES_DATABASES` list of databases you want to backup. `ALL` to backup all databases *required*
 - `POSTGRES_EXTRA_OPTS` pg_dump options (default: '')
-- `POSTGRES_DATABASES` list of databases you want to backup *required*
 - `POSTGRES_HOST` the postgres host *required*
 - `POSTGRES_PORT` the postgres port (default: 5432)
 - `POSTGRES_USER` the postgres user *required*
@@ -59,4 +60,3 @@ pgbackups3:
 You can additionally set the `SCHEDULE` environment variable like `-e SCHEDULE="@daily"` to run the backup automatically.
 
 More information about the scheduling can be found [here](http://godoc.org/github.com/robfig/cron#hdr-Predefined_schedules).
-
