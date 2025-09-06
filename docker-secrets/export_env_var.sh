@@ -1,5 +1,4 @@
 #!/bin/bash
-#!/bin/bash
 
 # Check if two arguments were provided
 if [ $# -ne 2 ]; then
