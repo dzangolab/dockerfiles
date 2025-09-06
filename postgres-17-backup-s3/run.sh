@@ -13,5 +13,5 @@ fi
 if [ -z "${SCHEDULE}" ]; then
   /usr/bin/env bash backup.sh
 else
-  exec go-cron "$SCHEDULE" /usr/bin/env bash backup.sh
+  exec go-cron -s "$SCHEDULE" -p 8080 /usr/bin/env bash backup.sh
 fi
