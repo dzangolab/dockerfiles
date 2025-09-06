@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
       > /etc/apt/sources.list.d/pgdg.list && \
     apt-get update && apt-get install -y --no-install-recommends \
-    cron \
     curl \
     unzip \
     locales \
@@ -27,7 +26,7 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     /usr/local/aws-cli/v2/*/dist/aws_completer \
     /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
     /usr/local/aws-cli/v2/*/dist/awscli/examples \
- && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.6/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
+ && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
  && chmod +x /usr/local/bin/go-cron \
  && apt-get remove --purge -y curl unzip \
  && apt-get autoremove -y \
