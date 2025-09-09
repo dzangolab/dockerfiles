@@ -1,5 +1,10 @@
-FROM python:3.11-slim
+FROM dzangolab/docker-secrets:0.9 AS secrets
+
+FROM python:3.13.7-slim
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
+HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
+
+COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
 RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
@@ -22,29 +27,30 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     /usr/local/aws-cli/v2/*/dist/aws_completer \
     /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
     /usr/local/aws-cli/v2/*/dist/awscli/examples \
- && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.6/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
+ && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
  && chmod +x /usr/local/bin/go-cron \
- && apt-get remove --purge -y curl unzip \
+ && apt-get remove --purge -y unzip \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
 ADD run.sh run.sh
 ADD backup.sh backup.sh
 
-ENV POSTGRES_DATABASES **None**
-ENV POSTGRES_EXTRA_OPTS ''
-ENV POSTGRES_HOST **None**
-ENV POSTGRES_PASSWORD **None**
-ENV POSTGRES_PORT 5432
-ENV POSTGRES_USER **None**
-ENV S3_ACCESS_KEY_ID **None**
-ENV S3_BUCKET **None**
-ENV S3_ENDPOINT **None**
-ENV S3_FILENAME **None**
-ENV S3_PREFIX 'backup'
-ENV S3_REGION us-west-1
-ENV S3_S3V4 no
-ENV S3_SECRET_ACCESS_KEY **None**
-ENV SCHEDULE **None**
+#ENV ENCRYPTION_PASSWORD
+ENV POSTGRES_DATABASES=ALL
+ENV POSTGRES_EXTRA_OPTS=''
+#ENV POSTGRES_HOST
+#ENV POSTGRES_PASSWORD
+ENV POSTGRES_PORT=5432
+ENV POSTGRES_USER=postgres
+#ENV S3_ACCESS_KEY_ID
+#ENV S3_BUCKET
+#ENV S3_ENDPOINT
+#ENV S3_FILENAME
+#ENV S3_PREFIX
+ENV S3_REGION=us-west-1
+ENV S3_S3V4=no
+#ENV S3_SECRET_ACCESS_KEY
+ENV SCHEDULE=@daily
 
 CMD ["bash", "run.sh"]

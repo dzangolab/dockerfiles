@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     curl \
     unzip \
     locales \
-    postgresql-client-17 \
+    postgresql-client-16 \
  && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
  && locale-gen \
  && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip \
