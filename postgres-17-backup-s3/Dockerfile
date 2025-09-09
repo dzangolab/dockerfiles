@@ -2,6 +2,7 @@ FROM dzangolab/docker-secrets:0.9 AS secrets
 
 FROM python:3.13.7-slim
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
+HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
@@ -28,7 +29,7 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     /usr/local/aws-cli/v2/*/dist/awscli/examples \
  && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
  && chmod +x /usr/local/bin/go-cron \
- && apt-get remove --purge -y curl unzip \
+ && apt-get remove --purge -y unzip \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
