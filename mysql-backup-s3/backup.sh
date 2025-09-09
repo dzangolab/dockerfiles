@@ -1,132 +1,95 @@
-#! /bin/sh
+#!/usr/bin/env bash
 
-set -e
+set -x
+set -eo pipefail
 
-if [ -n "${MYSQL_PASSWORD_FILE}" ]; then
-  MYSQL_PASSWORD=$(cat "$MYSQL_PASSWORD_FILE")
-  export MYSQL_PASSWORD
-fi
-
-if [ -n "${S3_ACCESS_KEY_ID_FILE}" ]; then
-  S3_ACCESS_KEY_ID=$(cat "$S3_ACCESS_KEY_ID_FILE")
-  export S3_ACCESS_KEY_ID
-fi
-
-if [ -n "${S3_SECRET_ACCESS_KEY_FILE}" ]; then
-  S3_SECRET_ACCESS_KEY=$(cat "$S3_SECRET_ACCESS_KEY_FILE")
-  export S3_SECRET_ACCESS_KEY
-fi
-
-if [ "${S3_ACCESS_KEY_ID}" == "**None**" ]; then
-  echo "Warning: You did not set the S3_ACCESS_KEY_ID environment variable."
-fi
-
-if [ "${S3_SECRET_ACCESS_KEY}" == "**None**" ]; then
-  echo "Warning: You did not set the S3_SECRET_ACCESS_KEY environment variable."
-fi
-
-if [ "${S3_BUCKET}" == "**None**" ]; then
+if [ -z "${S3_BUCKET}" ]; then
   echo "You need to set the S3_BUCKET environment variable."
   exit 1
 fi
 
-if [ "${MYSQL_HOST}" == "**None**" ]; then
-  echo "You need to set the MYSQL_HOST environment variable."
+if [ -z "${DATABASES}" ]; then
+  echo "You need to set the POSTGRES_DATABASES environment variable."
   exit 1
 fi
 
-if [ "${MYSQL_USER}" == "**None**" ]; then
-  echo "You need to set the MYSQL_USER environment variable."
+if [ -z "${DATABASE_HOST}" ]; then
+  echo "You need to set the DATABASE_HOST environment variable."
   exit 1
 fi
 
-if [ "${MYSQL_PASSWORD}" == "**None**" ]; then
-  echo "You need to set the MYSQL_PASSWORD environment variable or link to a container named MYSQL."
+if [ -z "${DATABASE_USER}" ]; then
+  echo "You need to set the DATABASE_USER environment variable."
   exit 1
 fi
 
-if [ "${S3_IAMROLE}" != "true" ]; then
-  # env vars needed for aws tools - only if an IAM role is not used
-  export AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID
-  export AWS_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
-  export AWS_DEFAULT_REGION=$S3_REGION
+if [ -z "${DATABASE_PASSWORD}" ]; then
+  echo "You need to set the DATABASE_PASSWORD environment variable or link to a container named POSTGRES."
+  exit 1
 fi
 
-MYSQL_HOST_OPTS="-h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
-DUMP_START_TIME=$(date +"%Y-%m-%dT%H%M%SZ")
-
-copy_s3 () {
-  SRC_FILE=$1
-  DEST_FILE=$2
-
-  if [ "${S3_ENDPOINT}" == "**None**" ]; then
-    AWS_ARGS=""
-  else
-    AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
-  fi
-
-  if [ "${S3_PREFIX}" == "**None**" ]; then
-    DEST="s3://$S3_BUCKET/${DEST_FILE}"
-  else
-    DEST="s3://$S3_BUCKET/$S3_PREFIX/$DEST_FILE"
-  fi
-
-  echo "Uploading ${DEST_FILE} to S3..."
-
-  cat $SRC_FILE | aws $AWS_ARGS s3 cp - $DEST
-
-  if [ $? != 0 ]; then
-    >&2 echo "Error uploading ${DEST_FILE} on S3"
-  fi
-
-  rm $SRC_FILE
-}
-
-# Multi file: yes
-if [ ! -z "$(echo $MULTI_FILES | grep -i -E "(yes|true|1)")" ]; then
-  if [ "${MYSQLDUMP_DATABASE}" == "--all-databases" ]; then
-    DATABASES=`mysql $MYSQL_HOST_OPTS -e "SHOW DATABASES;" | grep -Ev "(Database|information_schema|performance_schema|mysql|sys|innodb)"`
-  else
-    DATABASES=$MYSQLDUMP_DATABASE
-  fi
-
-  for DB in $DATABASES; do
-    echo "Creating individual dump of ${DB} from ${MYSQL_HOST}..."
-
-    DUMP_FILE="/tmp/${DB}.sql.gz"
-
-    mysqldump $MYSQL_HOST_OPTS $MYSQLDUMP_OPTIONS --databases $DB | gzip > $DUMP_FILE
-
-    if [ $? == 0 ]; then
-      if [ "${S3_FILENAME}" == "**None**" ]; then
-        S3_FILE="${DB}/${DB}.${DUMP_START_TIME}.sql.gz"
-      else
-        S3_FILE="${DB}/${DB}.${S3_FILENAME}.sql.gz"
-      fi
-
-      copy_s3 $DUMP_FILE $S3_FILE
-    else
-      >&2 echo "Error creating dump of ${DB}"
-    fi
-  done
-# Multi file: no
+if [ -z "${DATABASE_VERSION}" ]; then
+  DATABASE_VERSION=""
 else
-  echo "Creating dump for ${MYSQLDUMP_DATABASE} from ${MYSQL_HOST}..."
-
-  DUMP_FILE="/tmp/dump.sql.gz"
-  mysqldump $MYSQL_HOST_OPTS $MYSQLDUMP_OPTIONS $MYSQLDUMP_DATABASE | gzip > $DUMP_FILE
-
-  if [ $? == 0 ]; then
-    if [ "${S3_FILENAME}" == "**None**" ]; then
-      S3_FILE="${DUMP_START_TIME}.dump.sql.gz"
-    else
-      S3_FILE="${S3_FILENAME}.sql.gz"
-    fi
-
-    copy_s3 $DUMP_FILE $S3_FILE
-  else
-    >&2 echo "Error creating dump of all databases"
-  fi
+  DATABASE_VERSION=".${DATABASE_VERSION}"
 fi
 
-echo "SQL backup finished"
+if [ -z "${S3_ENDPOINT}" ]; then
+  AWS_ARGS=""
+else
+  AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
+fi
+
+# env vars needed for aws tools
+export AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
+export AWS_DEFAULT_REGION=$S3_REGION
+
+DATABASE_HOST_OPTIONS="-h $DATABASE_HOST -P $DATABASE_PORT -u$DATABASE_USER -p$DATABASE_PASSWORD"
+
+if [ -z "${S3_PREFIX}" ]; then
+  S3_PREFIX="/"
+else
+  S3_PREFIX="/${S3_PREFIX}/"
+fi
+
+if [ -z "${S3_SUFFIX}" ]; then
+  S3_SUFFIX=""
+else
+  S3_SUFFIX="-${S3_SUFFIX}"
+fi
+
+if [ "${DATABASES}" = "ALL" ]; then
+  DB_LIST=$(psql $DATABASE_HOST_OPTS -t -c "SELECT datname FROM pg_database WHERE datistemplate = false AND datname != 'default';")
+else 
+  DB_LIST = "${DATABASES//,/ }"
+fi
+
+for DB in $DB_LIST; do
+  SRC_FILE=dump.sql.gz
+  DEST_FILE=${DB}/$(date +"%Y")/$(date +"%m")/${DB}${DATABASE_VERSION}.$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
+
+  echo "Creating dump of ${DB} database from ${DATABASE_HOST}..."
+  if ! pg_dump $DATABASE_HOST_OPTS "$DB" | gzip > "$SRC_FILE"; then
+    >&2 echo "Error creating dump for database: ${DB}"
+    continue
+  fi
+
+  if [ -n "${ENCRYPTION_PASSWORD}" ]; then
+    echo "Encrypting ${SRC_FILE}"
+    if ! openssl enc -aes-256-cbc -in "$SRC_FILE" -out "${SRC_FILE}.enc" -k "$ENCRYPTION_PASSWORD"; then
+      >&2 echo "Error encrypting ${SRC_FILE}"
+      continue
+    fi
+    rm "$SRC_FILE"
+    SRC_FILE="${SRC_FILE}.enc"
+    DEST_FILE="${DEST_FILE}.enc"
+  fi
+
+  echo "Uploading dump to $S3_BUCKET"
+  cat $SRC_FILE | aws $AWS_ARGS s3 cp - "s3://${S3_BUCKET}${S3_PREFIX}${DEST_FILE}" || exit 2
+
+  echo "SQL backup uploaded successfully"
+  echo "Uploaded to s3://${S3_BUCKET}${S3_PREFIX}${DEST_FILE}"
+  rm -rf $SRC_FILE
+done
