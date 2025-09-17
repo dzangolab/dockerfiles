@@ -17,6 +17,8 @@ if [ -z "${NC_DB:-}" ]; then
 
     if [ -n "${DATABASE_PORT:-}" ]; then
       DATABASE_PORT=":${DATABASE_PORT}"
+    else 
+      DATABASE_PORT=""
     fi
 
     NC_DB="pg://${DATABASE_HOST}${DATABASE_PORT}?u=${DATABASE_USER}&p=${encoded_password}&d=${DATABASE_NAME}"
