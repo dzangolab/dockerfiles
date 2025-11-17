@@ -1,12 +1,10 @@
 FROM dzangolab/docker-secrets:0.9 AS secrets
-
-FROM python:3.13.7-slim
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
 
-COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
+FROM python:3.13.7-slim AS base
 
-COPY get_aws_distro.sh .
+COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
 RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
@@ -20,10 +18,7 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
     postgresql-client-18 \
  && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
  && locale-gen \
- && chmod +x ./get_aws_distro.sh \
- && DISTRO=$(./get_aws_distro.sh) \
- && echo $DISTRO \
- && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-$DISTRO.zip -o awscliv2.zip \
+ && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip \
  && unzip awscliv2.zip \
  && ./aws/install \
  && rm -rf \
