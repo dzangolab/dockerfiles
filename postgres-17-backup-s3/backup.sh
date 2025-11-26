@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
 set -eo pipefail
 
 echo "Starting backup at $(date)"
