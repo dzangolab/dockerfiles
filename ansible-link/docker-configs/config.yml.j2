@@ -1,0 +1,37 @@
+####################################################################
+# ANSIBLE LINK CONFIGURATION                                       #
+# docs:                                                            #
+#   github.com/lfkdev/ansible-link                                 #
+#   ansible-runner.readthedocs.io/_/downloads/en/stable/pdf/       #
+####################################################################
+
+# webhook
+ webhook:
+   url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+   type: "slack" # "slack", "discord" or "generic" supported
+   timeout: 5  # optional, default 5 seconds
+
+# flask
+host: '127.0.0.1'
+port: 5001
+debug: false
+
+# ansible-runner
+suppress_ansible_output: false
+omit_event_data: false
+only_failed_event_data: false
+
+# promtetheus
+metrics_port: 9090
+
+# general
+playbook_dir: '/etc/ansible/playbooks'
+inventory_file: '/etc/ansible/environments/hosts'
+job_storage_dir: '/var/lib/ansible-link/job-storage'
+log_level: 'INFO'
+
+# ansible-link
+playbook_whitelist: []
+ playbook_whitelist:
+   - monitoring.yml
+   - mariadb.yml

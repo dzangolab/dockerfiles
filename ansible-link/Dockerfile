@@ -24,16 +24,30 @@ RUN wget https://github.com/lfkdev/ansible-link/releases/download/v2.1.1/ansible
 RUN mkdir -p /app && cp -r ansible-link-2.1.1/* /app/ \
     && rm -rf ansible-link-2.1.1
 
-# Create directories
-RUN mkdir -p /etc/ansible-link /data /config
+# # Create directories
+# RUN mkdir -p /etc/ansible-link /data /config /root/.ssh
 
-# Create non-root user
+# # Allow build-time configuration
+# ARG CONFIG_DIR=./templates
+
+# # Copy config files (use .dockerignore to control which files)
+# COPY ${CONFIG_DIR}/config.yml /etc/ansible-link/config.yml
+# COPY ${CONFIG_DIR}/hosts /etc/ansible-link/hosts
+# COPY ${CONFIG_DIR}/ssh_config /root/.ssh/config
+
+
+# # Create non-root user
+# RUN useradd -m -u 1000 -s /bin/bash ansible \
+#     && chown -R ansible:ansible /app /etc/ansible-link /data /config
+
+COPY examples/ /default-configs/
+
 RUN useradd -m -u 1000 -s /bin/bash ansible \
-    && chown -R ansible:ansible /app /etc/ansible-link /data /config
+    && chown -R ansible:ansible /app /etc/ansible-link /data /config /default-configs
 
 # Copy entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 WORKDIR /app
 USER ansible
