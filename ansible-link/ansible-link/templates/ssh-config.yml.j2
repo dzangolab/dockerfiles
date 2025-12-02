@@ -1,0 +1,15 @@
+Host *
+        AddKeysToAgent yes
+        IdentitiesOnly yes
+        IdentityFile /etc/ansible-link/ssh_key
+        ForwardAgent yes
+        PreferredAuthentications publickey
+        StrictHostKeyChecking=no
+
+Host bastion
+    Hostname {{ ansible_link__bastion_ip }}
+    User ec2-user
+Host nfs
+    Hostname {{ ansible_link__nfs_ip }}
+    User ec2-user
+    ProxyCommand ssh -qW%h:%p bastion

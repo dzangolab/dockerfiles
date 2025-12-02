@@ -1,0 +1,48 @@
+---
+- name: Setup
+  become: true
+  block:
+
+    - name: Ensure ansible directories exist
+      file:
+        group: "{{ ansible_link__deploy_group }}"
+        owner: "{{ ansible_link__deploy_user }}"
+        path: "{{ item }}"
+        state: directory
+        recurse: yes
+      loop:
+        - "{{ ansible_link__deploy_dir }}"
+      when: ansible_link__state == "started"
+
+    - name: Copy files
+      template:
+        dest: "{{ ansible_link__deploy_dir }}/ansible_link.yml"
+        group: "{{ ansible_link__deploy_group }}"
+        owner: "{{ ansible_link__deploy_user }}"
+        src: "templates/ansible-link.yml.j2"
+      when: ansible_link__state == "started"
+
+    - name: Template configuration files
+      template:
+        src: "{{ item.src }}"
+        dest: "{{ ansible_link__deploy_dir }}/{{ item.dest }}"
+        group: "{{ ansible_link__deploy_group }}"
+        owner: "{{ ansible_link__deploy_user }}"
+      loop:
+        - { src: "templates/config.yml.j2", dest: "config.yml" }
+        - { src: "templates/hosts.yml.j2", dest: "hosts.yml" }
+        - { src: "templates/ssh-config.yml.j2", dest: "ssh-config.yml" }
+      when: ansible_link__state == "started"
+
+
+- name: Start ansible_link
+  command: docker stack deploy -c ansible_link.yml ansible_link
+  args:
+    chdir: "{{ ansible_link__deploy_dir }}"
+  when: ansible_link__state == "started"
+
+- name: Stop ansible_link
+  command: docker stack rm ansible_link
+  args:
+    chdir: "{{ ansible_link__deploy_dir }}"
+  when: ansible_link__state == "stopped"

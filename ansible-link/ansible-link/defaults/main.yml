@@ -1,0 +1,54 @@
+# ansible/defaults/main.yml
+
+# Docker image settings
+ansible_link_image: "yourusername/ansible-link"
+ansible_link_version: "latest"
+
+# Deployment settings
+ansible_link_deploy_dir: "/opt/ansible-link"
+ansible_link_user: "root"
+ansible_link_group: "root"
+
+# Configuration directories
+ansible_link_config_dir: "{{ ansible_link_deploy_dir }}/config"
+ansible_link_playbooks_dir: "{{ ansible_link_deploy_dir }}/playbooks"
+ansible_link_data_dir: "{{ ansible_link_deploy_dir }}/data"
+
+# Web settings
+ansible_link_domain: "ansible.example.com"
+ansible_link_port: 5001
+ansible_link_config_host: "0.0.0.0"
+ansible_link_config_debug: false
+
+# Security
+ansible_link_basicauth_enabled: false
+ansible_link_basicauth_users: []
+ansible_link_config_playbook_whitelist: []
+
+# NFS Configuration
+ansible_link_nfs_enabled: false
+ansible_link_nfs_server: ""  # NFS server IP/hostname
+ansible_link_nfs_share: "/mnt/nfs/ansible-link"  # NFS share path
+
+# SSH Configuration
+ansible_link_bastion_ip: ""
+ansible_link_ssh_key_path: ""  # Path to SSH key on Ansible controller
+
+# Network
+ansible_link_network: "traefik-public"
+ansible_link_traefik_enabled: true
+
+# State
+ansible_link_state: "present"  # present or absent
+
+# Ansible Link Configuration
+ansible_link_config_port: 5001
+ansible_link_config_metrics_port: 9091
+ansible_link_config_suppress_ansible_output: false
+ansible_link_config_omit_event_data: false
+ansible_link_config_only_failed_event_data: false
+ansible_link_config_playbook_dir: "/etc/ansible-link/playbooks"
+ansible_link_config_inventory_file: "/etc/ansible-link/hosts"
+ansible_link_config_job_storage_dir: "/data/jobs"
+ansible_link_config_log_level: "INFO"
+ansible_link_config_timeout: 5
