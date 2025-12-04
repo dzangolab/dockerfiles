@@ -1,0 +1,102 @@
+name: ansible-link
+
+secrets:
+  ansible-ssh-key:
+    file: ansible-ssh-key
+  ansible-basicauth:
+    file: ansible-basicauth
+
+configs:
+  ansible-link-config:
+    file: configs/ansible-link-config.yml
+  ansible-link-hosts:
+    file: configs/ansible-link-hosts.yml
+  ansible-link-ssh-config:
+    file: configs/ansible-link-ssh-config.yml
+
+services:
+  change-vol-ownership:
+    command: >
+      bash -c "
+      chown -R 1000:1000 /tmp/data
+      && chown -R 1000:1000 /tmp/playbooks"
+    image: alpine
+    user: root
+    volumes:
+      - ansible-link-data:/tmp/data
+      - ansible-link-playbooks:/tmp/playbooks
+
+  ansible-link:
+    depends_on:
+      change-vol-ownership:
+        condition: service_completed_successfully
+    environment:
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+      ANSIBLE_PRIVATE_KEY_FILE: /run/secrets/ansible-ssh-key
+      # Optional environment variables for template processing
+      # ANSIBLE_LINK_HOST: ${ANSIBLE_LINK_HOST:-0.0.0.0}
+      # ANSIBLE_LINK_PORT: ${ANSIBLE_LINK_PORT:-5001}
+      # ANSIBLE_LINK_DEBUG: ${ANSIBLE_LINK_DEBUG:-false}
+      # ANSIBLE_LINK_METRICS_PORT: ${ANSIBLE_LINK_METRICS_PORT:-9091}
+      # ANSIBLE_LINK_LOG_LEVEL: ${ANSIBLE_LINK_LOG_LEVEL:-INFO}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test: curl --fail http://localhost:5001/health || exit 1
+      timeout: 10s
+      start_period: 30s
+    image: yourusername/ansible-link:latest
+    ports:
+      - "5001:5001"
+    configs:
+      - source: ansible-link-config
+        target: /config/config.yml
+      - source: ansible-link-hosts
+        target: /config/hosts
+      - source: ansible-link-ssh-config
+        target: /config/ssh_config
+    secrets:
+      - source: ansible-ssh-key
+        target: /config/ssh_key
+    volumes:
+      - ansible-link-data:/data
+      - ansible-link-playbooks:/etc/ansible-link/playbooks
+    restart: unless-stopped
+
+  # Optional: Traefik router service if you want reverse proxy
+  traefik-router:
+    image: traefik:v3.0
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=admin@yourdomain.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - traefik-certificates:/letsencrypt
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.yourdomain.com`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
+    networks:
+      - traefik-network
+    restart: unless-stopped
+
+volumes:
+  ansible-link-data:
+  ansible-link-playbooks:
+  traefik-certificates:
+
+networks:
+  traefik-network:
+    external: true

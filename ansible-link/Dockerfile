@@ -1,62 +1,28 @@
 FROM python:3.9-slim
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    ssh-client \
-    python3-pip \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+ENV ANSIBLE_CONFIG=/etc/ansible-link/ansible.cfg \
+    ANSIBLE_PRIVATE_KEY_FILE=/etc/ansible-link/ssh_key \
+    ANSIBLE_HOST_KEY_CHECKING=False
 
-# Install Ansible and dependencies
-RUN pip3 install ansible ansible-runner
+# Install Linux deps
+RUN apt-get update && \
+    apt-get install -y wget unzip ssh-client python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 
-# Download and install ansible-link
-RUN wget https://github.com/lfkdev/ansible-link/releases/download/v2.1.1/ansible-link-2.1.1.zip \
-    && unzip ansible-link-2.1.1.zip \
-    && rm ansible-link-2.1.1.zip \
-    && cd ansible-link-2.1.1 \
-    && pip3 install -r requirements.txt \
-    && pip3 install gunicorn
+# Install Python deps
+RUN pip3 install --no-cache-dir ansible gunicorn
 
-# Copy application
-RUN mkdir -p /app && cp -r ansible-link-2.1.1/* /app/ \
-    && rm -rf ansible-link-2.1.1
+# Download ansible-link release
+RUN wget https://github.com/lfkdev/ansible-link/releases/download/v2.1.1/ansible-link-2.1.1.zip && \
+    unzip ansible-link-2.1.1.zip && \
+    pip3 install -r requirements.txt && \
+    rm ansible-link-2.1.1.zip
 
-# # Create directories
-# RUN mkdir -p /etc/ansible-link /data /config /root/.ssh
+# Create config dirs
+RUN mkdir -p /etc/ansible-link /root/.ssh
 
-# # Allow build-time configuration
-# ARG CONFIG_DIR=./templates
+# Preload default SSH config (Ansible role may overwrite)
+COPY templates/ssh-config.yml.j2 /root/.ssh/config
 
-# # Copy config files (use .dockerignore to control which files)
-# COPY ${CONFIG_DIR}/config.yml /etc/ansible-link/config.yml
-# COPY ${CONFIG_DIR}/hosts /etc/ansible-link/hosts
-# COPY ${CONFIG_DIR}/ssh_config /root/.ssh/config
-
-
-# # Create non-root user
-# RUN useradd -m -u 1000 -s /bin/bash ansible \
-#     && chown -R ansible:ansible /app /etc/ansible-link /data /config
-
-COPY examples/ /default-configs/
-
-RUN useradd -m -u 1000 -s /bin/bash ansible \
-    && chown -R ansible:ansible /app /etc/ansible-link /data /config /default-configs
-
-# Copy entrypoint
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-
-WORKDIR /app
-USER ansible
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:5001/health || exit 1
-
-EXPOSE 5001
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python3", "-m", "gunicorn", "--workers", "1", "--bind", "0.0.0.0:5001", "wsgi:application"]
+# Entrypoint will only run gunicorn
+CMD ["gunicorn", "--workers", "1", "--bind", "0.0.0.0:5001", "wsgi:application"]

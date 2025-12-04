@@ -1,0 +1,90 @@
+version: '3.8'
+
+networks:
+  traefik-public:
+    external: true
+
+configs:
+  ansible_link_config:
+    external: true
+    name: ansible-link-config  # Must match your Docker Swarm config name
+  ansible_link_hosts:
+    external: true
+    name: ansible-link-hosts
+  ansible_link_ssh_config:
+    external: true
+    name: ansible-link-ssh-config
+
+# Only add this if you created an SSH key secret
+# secrets:
+#   ansible_ssh_key:
+#     external: true
+#     name: ansible-ssh-key
+
+services:
+  change-vol-ownership:
+    command: >
+      bash -c "
+      chown -R 1000:1000 /tmp/data
+      "
+    image: alpine
+    user: root
+    volumes:
+      - ansible-link-data:/tmp/data
+    deploy:
+      mode: replicated
+      replicas: 0  # Only runs once during deployment
+
+  ansible-link:
+    depends_on:
+      change-vol-ownership:
+        condition: service_completed_successfully
+    image: yourusername/ansible-link:latest  # Your custom Docker image
+    environment:
+      - ANSIBLE_HOST_KEY_CHECKING=False
+    ports:
+      - "5001:5001"
+    configs:
+      - source: ansible_link_config
+        target: /config/config.yml
+      - source: ansible_link_hosts
+        target: /config/hosts
+      - source: ansible_link_ssh_config
+        target: /config/ssh_config
+    # If using SSH key secret:
+    # secrets:
+    #   - source: ansible_ssh_key
+    #     target: /config/ssh_key
+    volumes:
+      - ansible-link-data:/data
+      - ansible-link-playbooks:/etc/ansible-link/playbooks
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik-public"
+        - "traefik.http.services.ansible-link.loadbalancer.server.port=5001"
+        - "traefik.http.routers.ansible-link.rule=Host(`ansible-link.yourdomain.com`)"
+        - "traefik.http.routers.ansible-link.entrypoints=websecure"
+        - "traefik.http.routers.ansible-link.tls=true"
+        - "traefik.http.routers.ansible-link.tls.certresolver=le"
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    networks:
+      - traefik-public
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  ansible-link-data:
+  ansible-link-playbooks:
