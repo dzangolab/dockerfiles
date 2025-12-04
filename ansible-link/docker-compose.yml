@@ -1,102 +1,84 @@
-name: ansible-link
+version: '3.8'
 
 secrets:
   ansible-ssh-key:
-    file: ansible-ssh-key
-  ansible-basicauth:
-    file: ansible-basicauth
+    external: true
+    name: ansible-link-ssh-key
 
 configs:
   ansible-link-config:
-    file: configs/ansible-link-config.yml
+    external: true
+    name: ansible-link-config
   ansible-link-hosts:
-    file: configs/ansible-link-hosts.yml
+    external: true
+    name: ansible-link-hosts
   ansible-link-ssh-config:
-    file: configs/ansible-link-ssh-config.yml
+    external: true
+    name: ansible-link-ssh-config
+  ansible-link-ssh-key-pub:
+    external: true
+    name: ansible-link-ssh-key-pub
 
 services:
-  change-vol-ownership:
-    command: >
-      bash -c "
-      chown -R 1000:1000 /tmp/data
-      && chown -R 1000:1000 /tmp/playbooks"
-    image: alpine
-    user: root
-    volumes:
-      - ansible-link-data:/tmp/data
-      - ansible-link-playbooks:/tmp/playbooks
-
   ansible-link:
-    depends_on:
-      change-vol-ownership:
-        condition: service_completed_successfully
-    environment:
-      ANSIBLE_HOST_KEY_CHECKING: "False"
-      ANSIBLE_PRIVATE_KEY_FILE: /run/secrets/ansible-ssh-key
-      # Optional environment variables for template processing
-      # ANSIBLE_LINK_HOST: ${ANSIBLE_LINK_HOST:-0.0.0.0}
-      # ANSIBLE_LINK_PORT: ${ANSIBLE_LINK_PORT:-5001}
-      # ANSIBLE_LINK_DEBUG: ${ANSIBLE_LINK_DEBUG:-false}
-      # ANSIBLE_LINK_METRICS_PORT: ${ANSIBLE_LINK_METRICS_PORT:-9091}
-      # ANSIBLE_LINK_LOG_LEVEL: ${ANSIBLE_LINK_LOG_LEVEL:-INFO}
-    healthcheck:
-      interval: 30s
-      retries: 3
-      test: curl --fail http://localhost:5001/health || exit 1
-      timeout: 10s
-      start_period: 30s
-    image: yourusername/ansible-link:latest
+    image: dzangolab/ansible-link:0.2
     ports:
-      - "5001:5001"
+      - target: 5001
+        published: 5001
+        protocol: tcp
+        mode: ingress
     configs:
+      # Mount configs directly where ansible-link expects them
       - source: ansible-link-config
-        target: /config/config.yml
+        target: config.yml  # Direct mount
       - source: ansible-link-hosts
-        target: /config/hosts
+        target: /etc/ansible-link/hosts       # Direct mount
       - source: ansible-link-ssh-config
-        target: /config/ssh_config
+        target: /etc/ansible-link/ssh_key     # Direct mount
+      - source: ansible-link-ssh-config
+        target: /root/.ssh/config     # Direct mount
     secrets:
       - source: ansible-ssh-key
-        target: /config/ssh_key
+        target: /root/.ssh/id_rsa     # Direct mount
     volumes:
-      - ansible-link-data:/data
       - ansible-link-playbooks:/etc/ansible-link/playbooks
-    restart: unless-stopped
-
-  # Optional: Traefik router service if you want reverse proxy
-  traefik-router:
-    image: traefik:v3.0
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=admin@yourdomain.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - traefik-certificates:/letsencrypt
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`traefik.yourdomain.com`)"
-      - "traefik.http.routers.api.service=api@internal"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=myresolver"
+    environment:
+      - ANSIBLE_PRIVATE_KEY_FILE=/root/.ssh/id_rsa
+      - ANSIBLE_CONFIG=/etc/ansible-link/ansible.cfg
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=public"
+        - "traefik.http.routers.ansible-link-http.entrypoints=web"
+        - "traefik.http.routers.ansible-link-http.middlewares=https-redirect"
+        - "traefik.http.routers.ansible-link-http.rule=Host(`ansible-link.dzango.dev`)"
+        - "traefik.http.routers.ansible-link-https.entrypoints=websecure"
+        - "traefik.http.routers.ansible-link-https.rule=Host(`ansible-link.dzango.dev`)"
+        - "traefik.http.routers.ansible-link-https.tls=true"
+        - "traefik.http.routers.ansible-link-https.tls.certresolver=le"
+        - "traefik.http.routers.ansible-link-https.tls.domains[0].main=ansible-link.dzango.dev"
+        - "traefik.http.services.ansible-link.loadbalancer.server.port=5001"
+        - "traefik.http.routers.ansible-link-https.service=ansible-link"
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
     networks:
-      - traefik-network
-    restart: unless-stopped
+      - public
 
 volumes:
-  ansible-link-data:
   ansible-link-playbooks:
-  traefik-certificates:
+    driver_opts:
+      type: 'nfs'
+      o: 'addr=10.0.160.189,nfsvers=4,rw'
+      device: ':/mnt/nfs/ansible-link/playbooks'
 
 networks:
-  traefik-network:
+  public:
     external: true
