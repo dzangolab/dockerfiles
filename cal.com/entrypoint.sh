@@ -1,6 +1,6 @@
-#!/bin/bash -eux
+#!/usr/env/bin bash -e
 
-source /calcom/scripts/expand_secrets.sh
+. /calcom/scripts/expand_secrets.sh
 
 # If DATABASE_URL is not set, construct it from individual components
 if [ -z "${DATABASE_URL:-}" ]; then
@@ -13,7 +13,7 @@ if [ -z "${DATABASE_URL:-}" ]; then
 
     encoded_password=$(urlencode "$DATABASE_PASSWORD")
 
-    DATABASE_URL="postgres://${DATABASE_USER}:${encoded_password}@${DATABASE_HOST}:5432/${DATABASE_NAME}"
+    DATABASE_URL="postgres://${DATABASE_USER}:${encoded_password}@${DATABASE_HOST}:${DATABASE_PORT-5432}/${DATABASE_NAME}"
     DATABASE_DIRECT_URL=$DATABASE_URL
   fi
 
@@ -21,4 +21,4 @@ if [ -z "${DATABASE_URL:-}" ]; then
   export DATABASE_DIRECT_URL
 fi
 
-sh /calcom/scripts/start.sh "$@"
+/usr/env/bin bash /calcom/scripts/start.sh "$@"
