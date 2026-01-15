@@ -1,7 +1,10 @@
-#!/usr/bin/env bash -eu
+#!/usr/bin/env bash
+
+set -eu
+set -x
 
 . /expand_secrets.sh
 
 expand_secrets
 
-yarn start
+node build/server/index.js

@@ -1,6 +1,6 @@
 FROM dzangolab/docker-secrets:0.9 AS secrets
 
-FROM outlinewiki/outline:1.2.0
+FROM outlinewiki/outline:1.2.0-3
 
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.source="https://github.com/dzangolab/dockerfiles/
 LABEL org.opencontainers.image.title="OutlineWiki"
 LABEL org.opencontainers.image.url="https://dzango.com"
 LABEL org.opencontainers.image.vendor="Dzango Technologies"
-LABEL org.opencontainers.image.version="1.2.0-0"
+LABEL org.opencontainers.image.version="1.2.0-3"
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
