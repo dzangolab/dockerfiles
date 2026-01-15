@@ -4,7 +4,7 @@ A docker secrets-enabled image for the open-source [Outline Wiki](https://www.ge
 
 ## Usage
 
-Use the `dzangolab/outlinewiki:1.1.0-1` image as a drop-in replacement for the original `outlinewiki/outline:1.1.0` image.
+Use the `dzangolab/outlinewiki:1.2.0-0` image as a drop-in replacement for the original `outlinewiki/outline:1.2.0` image.
 
 ### Docker secrets
 
@@ -29,12 +29,12 @@ secrets:
 
 services:
   outline:
-    image: dzangolab/outlinewiki:1.1.0-1
+    image: dzangolab/outlinewiki:1.2.0-0
     env:
       ...
       DATABASE_URL_FILE=/run/secrets/database-url
       SECRET_KEY_FILE=/run/secrets/secret-key
-      UTILS_SECRET=/run/secrets/utils-secret
+      UTILS_SECRET_FILE=/run/secrets/utils-secret
       ...
     secrets:
       - database-url
