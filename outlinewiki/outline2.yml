@@ -1,0 +1,94 @@
+networks:
+  services_outlinewiki:
+    external: true
+
+secrets:
+  database-password:
+    file: database-password.txt
+  database-url:
+    file: database-url.txt
+  secret-key:
+    file: secret-key.txt
+  utils-secret:
+    file: utils-secret.txt
+    
+services:
+  adminer: 
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      ADMINER_DEFAULT_SERVER: services_postgres18
+    image: adminer:latest
+    # labels:
+    #   - dev.orbstack.domains=adminer.orb.local
+    networks:
+      - services_outlinewiki
+    ports:
+      - "8080:8080"
+
+  https-portal:
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      DOMAINS: "outline.test -> http://outline:3000"
+      STAGE: local
+      WEBSOCKET: 1
+      CLIENT_MAX_BODY_SIZE: '0'
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    image: steveltn/https-portal
+    links:
+      - wiki
+    networks:
+      - services_outlinewiki
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - https-portal-data:/var/lib/https-portal
+
+  wiki:
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    env_file: ./swarm.env
+    environment:
+      DATABASE_NAME: outline
+      DATABASE_HOST: services_postgres18
+      DATABASE_PASSWORD_FILE: /run/secrets/database-password
+      DATABASE_USER: user
+      # DATABASE_URL: postgres://user:pass@postgres18:5432/outline
+      # DATABASE_URL_FILE: /run/secrets/database-url
+      REDIS_URL: redis://services_redis:6379
+      SECRET_KEY_FILE: /run/secrets/secret-key
+      UTILS_SECRET_FILE: /run/secrets/utils-secret
+    image: dzangolab/outlinewiki:1.1.0-2
+    networks:
+      - services_outlinewiki
+    ports:
+      - 3000:3000
+    secrets:
+      - database-password
+      - database-url
+      - secret-key
+      - utils-secret
+    volumes:
+      - storage-data:/var/lib/outline/data
+
+volumes:
+  https-portal-data:
+  storage-data:

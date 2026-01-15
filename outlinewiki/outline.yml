@@ -1,0 +1,134 @@
+networks:
+  outlinewiki:
+    attachable: true
+    driver: overlay
+
+secrets:
+  database-url:
+    file: database-url.txt
+  secret-key:
+    file: secret-key.txt
+  utils-secret:
+    file: utils-secret.txt
+    
+services:
+  adminer: 
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres18
+    image: adminer:latest
+    # labels:
+    #   - dev.orbstack.domains=adminer.orb.local
+    networks:
+      - outlinewiki
+    ports:
+      - "8080:8080"
+
+  https-portal:
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      DOMAINS: "outline.test -> http://wiki:3000"
+      STAGE: local
+      WEBSOCKET: 1
+      CLIENT_MAX_BODY_SIZE: '0'
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    image: steveltn/https-portal
+    links:
+      - outline
+    networks:
+      - outlinewiki
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - https-portal-data:/var/lib/https-portal
+
+  postgres18:
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      POSTGRES_DB: outline
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "outline", "-U", "user"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    image: postgres:18
+    networks:
+      - outlinewiki
+    volumes:
+      - database-data:/var/lib/postgresql
+
+  redis:
+    command: ["redis-server", "/redis.conf"]
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    image: redis
+    networks:
+      - outlinewiki
+    volumes:
+      - ./redis.conf:/redis.conf
+
+  wiki:
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    env_file: ./swarm.env
+    environment:
+      DATABASE_NAME: outline
+      DATABASE_HOST: outline_postgres18
+      DATABASE_PASSWORD: pass
+      DATABASE_USER: user
+      # DATABASE_URL: postgres://user:pass@postgres18:5432/outline
+      # DATABASE_URL_FILE: /run/secrets/database-url
+      REDIS_URL: redis://redis
+      SECRET_KEY_FILE: /run/secrets/secret-key
+      UTILS_SECRET_FILE: /run/secrets/utils-secret
+    image: dzangolab/outlinewiki:1.1.0-2
+    networks:
+      - outlinewiki
+    ports:
+      - 3000:3000
+    secrets:
+      - database-url
+      - secret-key
+      - utils-secret
+    volumes:
+      - storage-data:/var/lib/outline/data
+
+volumes:
+  https-portal-data:
+  storage-data:
+  database-data:
