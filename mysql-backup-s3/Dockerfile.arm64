@@ -1,0 +1,57 @@
+FROM dzangolab/docker-secrets:0.9 AS secrets
+LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
+HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
+
+FROM python:3.13.7-slim AS base
+
+COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
+
+COPY run.sh run.sh
+COPY backup.sh backup.sh
+
+RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    locales \
+    mariadb-client \
+ && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+ && locale-gen \
+ && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip \
+ && unzip awscliv2.zip \
+ && ./aws/install \
+ && rm -rf \
+    awscliv2.zip \
+    aws \
+    /usr/local/aws-cli/v2/*/dist/aws_completer \
+    /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
+    /usr/local/aws-cli/v2/*/dist/awscli/examples \
+ && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
+ && chmod +x /usr/local/bin/go-cron \
+ && apt-get remove --purge -y unzip \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && chmod +x backup.sh \
+ && chmod +x run.sh
+
+ENV DATABASES=ALL
+# ENCRYPTION_PASSWORD=
+ENV EXTRA_OPTIONS="--quote-names --quick --add-drop-table --add-locks --allow-keywords --disable-keys --extended-insert --single-transaction --create-options --comments --net_buffer_length=16384"
+# ENV DATABASE_HOST=
+ENV DATABASE_PORT=3306
+# ENV DATABASE_USER=
+# ENV DATABASE_PASSWORD=
+ENV MYSQLDUMP_OPTIONS="--quick --no-create-db --add-drop-table --add-locks --allow-keywords --quote-names --disable-keys --single-transaction --create-options --comments --net_buffer_length=16384"
+# ENV S3_ACCESS_KEY_ID=
+# ENV S3_BUCKET=
+# ENV S3_ENDPOINT=
+# ENV S3_FILENAME=
+ENV S3_IAMROLE=false
+# ENV S3_PREFIX=
+ENV S3_REGION=us-west-1
+ENV S3_S3V4=no
+# ENV S3_SECRET_ACCESS_KEY=
+# ENV S3_SUFFIX=
+ENV SCHEDULE=@daily
+
+CMD ["sh", "run.sh"]
