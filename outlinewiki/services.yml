@@ -1,0 +1,49 @@
+networks:
+  outlinewiki:
+    attachable: true
+    driver: overlay
+
+services:
+  postgres18:
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      POSTGRES_DB: outline
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "outline", "-U", "user"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    image: postgres:18
+    networks:
+      - outlinewiki
+    volumes:
+      - database-data:/var/lib/postgresql
+
+  redis:
+    command: ["redis-server", "/redis.conf"]
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    image: redis
+    networks:
+      - outlinewiki
+    volumes:
+      - ./redis.conf:/redis.conf
+
+volumes:
+  database-data:

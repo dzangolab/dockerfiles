@@ -1,0 +1,77 @@
+services:
+  adminer: 
+    depends_on:
+      - postgres
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    image: adminer:latest
+    ports:
+      - 8080:8080
+
+  outline:
+    build:
+      context: .
+    depends_on:
+      - postgres
+      - redis
+    env_file: ./docker.env
+    image: dzangolab/outlinewiki:local
+    ports:
+      - "3000"
+    volumes:
+      - storage-data:/var/lib/outline/data
+
+  redis:
+    command: ["redis-server", "/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis.conf:/redis.conf
+
+  postgres:
+    environment:
+      POSTGRES_DB: outline
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+    expose:
+      - "5432"
+    image: postgres:18
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "outline", "-U", "user"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    volumes:
+      - database-data:/var/lib/postgresql
+
+  https-portal:
+    environment:
+      DOMAINS: "outline.test -> http://outline:3000"
+      STAGE: local
+      WEBSOCKET: true
+      CLIENT_MAX_BODY_SIZE: '0'
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    image: steveltn/https-portal
+    links:
+      - outline
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    volumes:
+      - https-portal-data:/var/lib/https-portal
+
+volumes:
+  https-portal-data:
+  storage-data:
+  database-data:
