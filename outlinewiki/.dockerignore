@@ -1,0 +1,7 @@
+.gitignore
+*.env
+*.txt
+docker-compose.yml
+outline.yml
+README.md
+redis.conf

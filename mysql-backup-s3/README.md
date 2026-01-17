@@ -2,7 +2,7 @@
 
 Backup MySQL to S3 (supports periodic backups & mutli files) using AWS CLI v2.
 
-Forked from https://github.com/schickling/dockerfiles.
+Based on  https://github.com/schickling/dockerfiles and https://github.com/f213/mysql-backup-s3/tree/master.
 
 ## Basic usage
 
