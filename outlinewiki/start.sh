@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -eu
-set -x
 
 . /expand_secrets.sh
 
