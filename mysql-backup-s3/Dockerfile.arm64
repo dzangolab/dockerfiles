@@ -2,19 +2,18 @@ FROM dzangolab/docker-secrets:0.9 AS secrets
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
 
-FROM python:3.13.7-slim AS base
+FROM dhi.io/python:3-debian-sfw-ent-dev AS base
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
 COPY run.sh run.sh
 COPY backup.sh backup.sh
 
-RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
-    apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    unzip \
     locales \
     mariadb-client \
+    unzip \
  && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
  && locale-gen \
  && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip \
