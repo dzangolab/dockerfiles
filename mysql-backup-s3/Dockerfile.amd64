@@ -25,7 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     /usr/local/aws-cli/v2/*/dist/aws_completer \
     /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
     /usr/local/aws-cli/v2/*/dist/awscli/examples \
- && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
+ && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz -o /tmp/go-cron.gz \
+ && python3 -c "import gzip,shutil; shutil.copyfileobj(gzip.open('/tmp/go-cron.gz'), open('/usr/local/bin/go-cron','wb'))" \
+ && rm /tmp/go-cron.gz \
  && chmod +x /usr/local/bin/go-cron \
  && apt-get remove --purge -y unzip \
  && apt-get autoremove -y \
