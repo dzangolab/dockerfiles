@@ -4,7 +4,7 @@ set -e
 
 . /expand_secrets.sh
 
-# expand_secrets
+expand_secrets
 
 if [ ! -z "${DZANGOLAB_DOCKER_SECRETS_DEBUG:-}" ]; then
     echo -e "\033[1m$@\033[0m"
