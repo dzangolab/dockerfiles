@@ -8,6 +8,7 @@ COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
 COPY run.sh run.sh
 COPY backup.sh backup.sh
+COPY restore.sh restore.sh
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
@@ -34,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && chmod +x backup.sh \
+ && chmod +x restore.sh \
  && chmod +x run.sh
 
 ENV DATABASES=ALL

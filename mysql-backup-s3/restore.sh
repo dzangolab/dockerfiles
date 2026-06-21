@@ -80,7 +80,7 @@ find_latest_backup() {
 ARG=$1
 
 case "$ARG" in
-  *.sql|*.sql.gz)
+  *.sql|*.sql.gz|*.sql.enc|*.sql.gz.enc)
     SRC_KEY="$ARG"
 
     if ! aws $AWS_ARGS s3api head-object --bucket "${S3_BUCKET}" --key "${SRC_KEY}" > /dev/null 2>&1; then
