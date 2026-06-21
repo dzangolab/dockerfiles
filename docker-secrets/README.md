@@ -1,6 +1,6 @@
 # dzangolab/docker-secrets
 
-A scratch image containing a bash script for adding support for Docker secrets to other Docker images.
+A scratch image containing a POSIX-compliant shell script for adding support for Docker secrets to other Docker images.
 
 It does so by expanding environment variables ending in `_FILE` defined as docker secrets.
 
@@ -31,13 +31,9 @@ This script can be `COPY`'ed to your Docker image in a multi-stage build.
 
 ## Requirements
 
-The `expand_secrets.sh` script makes use of the `${!...}` bashism (indirect variable expansion) which is not available in other POSIX-compliant shells. If your image does not include `bash` (eg Alpine Linux) you will need to install it.
+The `expand_secrets.sh` script is written in POSIX `sh` and has no bash-specific dependencies. It works as-is with `bash`, `dash` (the default `/bin/sh` on Debian/Ubuntu) and BusyBox `sh` (the default `/bin/sh` on Alpine) — no extra package install is required.
 
-For example on Alpine Linux, add the following line to your Dockerfile:
-
-```
-RUN apk add --no-cache bash
-```
+The script does shell out to `env` and `sed` to enumerate `_FILE`-suffixed environment variables; these are present on virtually every base image.
 
 ## Usage
 
@@ -51,8 +47,8 @@ Modify your application's startup script to source the `docker-secrets` image's 
 
 Here we assume the script will be available in the same folder as your startup script. Adjust the path as required.
 
-```bash
-#!/bin/bash
+```sh
+#!/bin/sh
 
 # Source the script
 . expand_secrets.sh
@@ -126,7 +122,7 @@ Set the `DZANGOLAB_DOCKER_SECRETS_DEBUG` environment variable to any non-empty v
 
 ## Testing
 
-`test/Dockerfile` builds the image and runs `test/run_tests.sh` against it, exercising the happy path, the `/run/secrets/`-prefix restriction, the already-set-variable guard, a missing secret file, and debug output. Run it locally with:
+`test/Dockerfile` builds the image and runs the same set of checks (happy path, the `/run/secrets/`-prefix restriction, the already-set-variable guard, a missing secret file, and debug output) under three shells: `bash` (`test/run_tests.sh`), and `dash` and BusyBox `sh` (`test/run_tests_posix.sh`), to guard against bash-specific syntax creeping back in. Run it locally with:
 
 ```bash
 docker build -f test/Dockerfile -t docker-secrets-test .

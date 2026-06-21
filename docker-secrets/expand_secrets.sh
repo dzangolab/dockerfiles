@@ -1,34 +1,39 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -eu
 
 debug()
 {
-  if [ ! -z "${DZANGOLAB_DOCKER_SECRETS_DEBUG:-}" ]; then
-    echo -e "\033[1m$@\033[0m"
+  if [ -n "${DZANGOLAB_DOCKER_SECRETS_DEBUG:-}" ]; then
+    printf '\033[1m%s\033[0m\n' "$*"
   fi
 }
 
 expand_secret() {
   file_var=$1
-  secret_path="${!file_var}"
 
-  suffix="_FILE"
-  var=${file_var/%$suffix}
+  eval "secret_path=\${$file_var:-}"
 
-  if [[ "$secret_path" != /run/secrets/* ]]; then
-    debug "Skipping $file_var: path '$secret_path' is not under /run/secrets/"
-    return 1
-  fi
+  var=${file_var%_FILE}
 
-  if [ "${!var:-}" ]; then
-    echo >&2 "error: $var is already set. $file_var will be ignored"
+  case "$secret_path" in
+    /run/secrets/*) ;;
+    *)
+      debug "Skipping $file_var: path '$secret_path' is not under /run/secrets/"
+      return 1
+      ;;
+  esac
+
+  eval "current=\${$var:-}"
+  if [ -n "$current" ]; then
+    echo "error: $var is already set. $file_var will be ignored" >&2
     return 1
   fi
 
   if [ -f "$secret_path" ]; then
-    secret_value=$(cat "${secret_path}")
-    export -- "${var}"="${secret_value}"
+    secret_value=$(cat "$secret_path")
+    eval "$var=\$secret_value"
+    export "$var"
     unset "$file_var"
     debug "Expanded variable: $var"
   else
@@ -37,8 +42,11 @@ expand_secret() {
 }
 
 expand_secrets() {
-  while IFS= read -r file_var; do
-    [[ "$file_var" == *_FILE ]] || continue
-    expand_secret "$file_var" || true
-  done < <(compgen -e)
+  for file_var in $(env | sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p'); do
+    case "$file_var" in
+      *_FILE)
+        expand_secret "$file_var" || true
+        ;;
+    esac
+  done
 }
