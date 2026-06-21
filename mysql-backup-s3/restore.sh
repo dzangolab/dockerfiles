@@ -1,28 +1,19 @@
-#! /bin/sh
+#!/usr/bin/env bash
 
 set -e
 
-if [ -n "${MYSQL_PASSWORD_FILE}" ]; then
-  MYSQL_PASSWORD=$(cat "$MYSQL_PASSWORD_FILE")
-  export MYSQL_PASSWORD
-fi
+. /expand_secrets.sh
 
-if [ -n "${S3_ACCESS_KEY_ID_FILE}" ]; then
-  S3_ACCESS_KEY_ID=$(cat "$S3_ACCESS_KEY_ID_FILE")
-  export S3_ACCESS_KEY_ID
-fi
+expand_secrets
 
-if [ -n "${S3_SECRET_ACCESS_KEY_FILE}" ]; then
-  S3_SECRET_ACCESS_KEY=$(cat "$S3_SECRET_ACCESS_KEY_FILE")
-  export S3_SECRET_ACCESS_KEY
-fi
+if [ "${S3_IAMROLE}" != "true" ]; then
+  if [ "${S3_ACCESS_KEY_ID}" == "**None**" ]; then
+    echo "Warning: You did not set the S3_ACCESS_KEY_ID environment variable."
+  fi
 
-if [ "${S3_ACCESS_KEY_ID}" == "**None**" ]; then
-  echo "Warning: You did not set the S3_ACCESS_KEY_ID environment variable."
-fi
-
-if [ "${S3_SECRET_ACCESS_KEY}" == "**None**" ]; then
-  echo "Warning: You did not set the S3_SECRET_ACCESS_KEY environment variable."
+  if [ "${S3_SECRET_ACCESS_KEY}" == "**None**" ]; then
+    echo "Warning: You did not set the S3_SECRET_ACCESS_KEY environment variable."
+  fi
 fi
 
 if [ "${S3_BUCKET}" == "**None**" ]; then
@@ -30,18 +21,27 @@ if [ "${S3_BUCKET}" == "**None**" ]; then
   exit 1
 fi
 
-if [ "${MYSQL_HOST}" == "**None**" ]; then
-  echo "You need to set the MYSQL_HOST environment variable."
+if [ "${DATABASE_HOST}" == "**None**" ]; then
+  echo "You need to set the DATABASE_HOST environment variable."
   exit 1
 fi
 
-if [ "${MYSQL_USER}" == "**None**" ]; then
-  echo "You need to set the MYSQL_USER environment variable."
+if [ -z "${DATABASE_PORT}" ]; then
+  DATABASE_PORT=3306
+fi
+
+if [ "${DATABASE_USER}" == "**None**" ]; then
+  echo "You need to set the DATABASE_USER environment variable."
   exit 1
 fi
 
-if [ "${MYSQL_PASSWORD}" == "**None**" ]; then
-  echo "You need to set the MYSQL_PASSWORD environment variable or link to a container named MYSQL."
+if [ "${DATABASE_PASSWORD}" == "**None**" ]; then
+  echo "You need to set the DATABASE_PASSWORD environment variable or link to a container named MYSQL."
+  exit 1
+fi
+
+if [ -z "${1:-}" ]; then
+  echo "Usage: restore.sh <s3-key-ending-in-.sql-or-.sql.gz|database-name>"
   exit 1
 fi
 
@@ -52,33 +52,87 @@ if [ "${S3_IAMROLE}" != "true" ]; then
   export AWS_DEFAULT_REGION=$S3_REGION
 fi
 
-MYSQL_HOST_OPTS="-h $MYSQL_HOST -P $MYSQL_PORT -u$MYSQL_USER -p$MYSQL_PASSWORD"
+if [ "${S3_ENDPOINT}" == "**None**" ]; then
+  AWS_ARGS=""
+else
+  AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
+fi
 
-fetch_s3 () {
-  SRC_FILE=$1
-  DEST=/tmp
+if [ "${S3_PREFIX}" == "**None**" ]; then
+  S3_KEY_PREFIX=""
+else
+  S3_KEY_PREFIX="${S3_PREFIX}/"
+fi
 
-  if [ "${S3_ENDPOINT}" == "**None**" ]; then
-    AWS_ARGS=""
-  else
-    AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
-  fi
+DATABASE_HOST_OPTIONS="-h $DATABASE_HOST -P $DATABASE_PORT -u$DATABASE_USER -p$DATABASE_PASSWORD"
 
-  if [ "${S3_PREFIX}" == "**None**" ]; then
-    SRC="s3://$S3_BUCKET/${SRC_FILE}"
-  else
-    SRC="s3://$S3_BUCKET/$S3_PREFIX/$SRC_FILE"
-  fi
+# Finds the most recent backup key for a database, relying on the naming
+# pattern used by backup.sh: <db>/<year>/<month>/<db>[.version].<timestamp>.sql.gz[.enc]
+find_latest_backup() {
+  local db=$1
 
-  echo "Downloading ${SRC_FILE} to S3..."
-
-  cat $SRC | aws $AWS_ARGS s3 cp - $DEST
-
-  if [ $? != 0 ]; then
-    >&2 echo "Error downloading ${SRC_FILE} from S3"
-  fi
+  aws $AWS_ARGS s3 ls "s3://${S3_BUCKET}/${S3_KEY_PREFIX}${db}/" --recursive \
+    | awk '{print $4}' \
+    | sort \
+    | tail -n 1
 }
 
-mysql $MYSQL_HOST_OPTS < $DEST
+ARG=$1
+
+case "$ARG" in
+  *.sql|*.sql.gz)
+    SRC_KEY="$ARG"
+
+    if ! aws $AWS_ARGS s3api head-object --bucket "${S3_BUCKET}" --key "${SRC_KEY}" > /dev/null 2>&1; then
+      echo "Backup file  $ARG was not found under S3_BUCKET"
+      exit 1
+    fi
+    ;;
+  *)
+    SRC_KEY=$(find_latest_backup "$ARG")
+
+    if [ -z "$SRC_KEY" ]; then
+      echo "No backup file was found for database $ARG under S3_BUCKET"
+      exit 1
+    fi
+    ;;
+esac
+
+REL_KEY="${SRC_KEY#${S3_KEY_PREFIX}}"
+DATABASE_NAME="${REL_KEY%%/*}"
+
+WORK_DIR=$(mktemp -d)
+trap 'rm -rf "$WORK_DIR"' EXIT
+
+DEST_FILE="${WORK_DIR}/$(basename "$SRC_KEY")"
+
+echo "Downloading ${SRC_KEY} from S3..."
+
+if ! aws $AWS_ARGS s3 cp "s3://${S3_BUCKET}/${SRC_KEY}" "$DEST_FILE"; then
+  echo "Error downloading ${SRC_KEY} from S3"
+  exit 1
+fi
+
+if [[ "$DEST_FILE" == *.enc ]]; then
+  if [ -z "${ENCRYPTION_PASSWORD:-}" ]; then
+    echo "Backup file is encrypted but the ENCRYPTION_PASSWORD environment variable is not set."
+    exit 1
+  fi
+
+  echo "Decrypting ${DEST_FILE}"
+  openssl enc -aes-256-cbc -d -in "$DEST_FILE" -out "${DEST_FILE%.enc}" -k "$ENCRYPTION_PASSWORD"
+  rm "$DEST_FILE"
+  DEST_FILE="${DEST_FILE%.enc}"
+fi
+
+if [[ "$DEST_FILE" == *.gz ]]; then
+  echo "Decompressing ${DEST_FILE}"
+  gunzip "$DEST_FILE"
+  DEST_FILE="${DEST_FILE%.gz}"
+fi
+
+echo "Restoring ${DEST_FILE} into database ${DATABASE_NAME}..."
+
+mysql $DATABASE_HOST_OPTIONS "$DATABASE_NAME" < "$DEST_FILE"
 
 echo "Restore completed"
