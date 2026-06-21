@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -e
 
@@ -69,7 +69,7 @@ DATABASE_HOST_OPTIONS="-h $DATABASE_HOST -P $DATABASE_PORT -u$DATABASE_USER -p$D
 # Finds the most recent backup key for a database, relying on the naming
 # pattern used by backup.sh: <db>/<year>/<month>/<db>[.version].<timestamp>.sql.gz[.enc]
 find_latest_backup() {
-  local db=$1
+  db=$1
 
   aws $AWS_ARGS s3 ls "s3://${S3_BUCKET}/${S3_KEY_PREFIX}${db}/" --recursive \
     | awk '{print $4}' \
@@ -114,23 +114,27 @@ if ! aws $AWS_ARGS s3 cp "s3://${S3_BUCKET}/${SRC_KEY}" "$DEST_FILE"; then
   exit 1
 fi
 
-if [[ "$DEST_FILE" == *.enc ]]; then
-  if [ -z "${ENCRYPTION_PASSWORD:-}" ]; then
-    echo "Backup file is encrypted but the ENCRYPTION_PASSWORD environment variable is not set."
-    exit 1
-  fi
+case "$DEST_FILE" in
+  *.enc)
+    if [ -z "${ENCRYPTION_PASSWORD:-}" ]; then
+      echo "Backup file is encrypted but the ENCRYPTION_PASSWORD environment variable is not set."
+      exit 1
+    fi
 
-  echo "Decrypting ${DEST_FILE}"
-  openssl enc -aes-256-cbc -d -in "$DEST_FILE" -out "${DEST_FILE%.enc}" -k "$ENCRYPTION_PASSWORD"
-  rm "$DEST_FILE"
-  DEST_FILE="${DEST_FILE%.enc}"
-fi
+    echo "Decrypting ${DEST_FILE}"
+    openssl enc -aes-256-cbc -d -in "$DEST_FILE" -out "${DEST_FILE%.enc}" -k "$ENCRYPTION_PASSWORD"
+    rm "$DEST_FILE"
+    DEST_FILE="${DEST_FILE%.enc}"
+    ;;
+esac
 
-if [[ "$DEST_FILE" == *.gz ]]; then
-  echo "Decompressing ${DEST_FILE}"
-  gunzip "$DEST_FILE"
-  DEST_FILE="${DEST_FILE%.gz}"
-fi
+case "$DEST_FILE" in
+  *.gz)
+    echo "Decompressing ${DEST_FILE}"
+    gunzip "$DEST_FILE"
+    DEST_FILE="${DEST_FILE%.gz}"
+    ;;
+esac
 
 echo "Restoring ${DEST_FILE} into database ${DATABASE_NAME}..."
 

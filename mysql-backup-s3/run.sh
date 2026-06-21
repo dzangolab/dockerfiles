@@ -1,4 +1,4 @@
-#!/usr/env/bin bash
+#!/bin/sh
 
 set -e
 
@@ -6,16 +6,16 @@ set -e
 
 expand_secrets
 
-if [ ! -z "${DZANGOLAB_DOCKER_SECRETS_DEBUG:-}" ]; then
-    echo -e "\033[1m$@\033[0m"
+if [ -n "${DZANGOLAB_DOCKER_SECRETS_DEBUG:-}" ]; then
+    printf '\033[1m%s\033[0m\n' "$*"
 fi
 
-if [ "${S3_S3V4}" = "yes" ]; then
+if [ "${S3_S3V4:-}" = "yes" ]; then
     aws configure set default.s3.signature_version s3v4
 fi
 
-if [ -z "${SCHEDULE}" ]; then
-  /usr/bin/env bash backup.sh
+if [ -z "${SCHEDULE:-}" ]; then
+  sh backup.sh
 else
-  exec go-cron -s "$SCHEDULE" -- /usr/bin/env bash backup.sh
+  exec go-cron -s "$SCHEDULE" -- sh backup.sh
 fi
