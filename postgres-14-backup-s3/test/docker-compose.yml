@@ -1,14 +1,15 @@
-version: "3"
+name: postgres-14-backup-s3
 
 services:
   backup:
     build:
-      context: .
+      context: ..
+      dockerfile: Dockerfile.arm64
     depends_on:
       - minio
       - psql
     environment:
-      POSTGRES_DATABASE: iso-3166
+      POSTGRES_DATABASES: iso-3166
       POSTGRES_HOST: psql
       POSTGRES_PASSWORD: secret
       POSTGRES_USER: test
@@ -16,8 +17,8 @@ services:
       S3_BUCKET: backups
       S3_ENDPOINT: http://minio:9001
       S3_SECRET_ACCESS_KEY: minioadmin
-      S3_PATH: backups
-    image: dzangolab/postgres-backup-s3:14
+      S3_PREFIX: backups
+    image: dzangolab/postgres-14-backup-s3:latest
 
   psql:
     environment:

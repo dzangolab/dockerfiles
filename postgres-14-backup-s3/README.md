@@ -1,24 +1,24 @@
-# postgres-backup-s3
+# postgres-14-backup-s3
 
-Backup PostgresSQL to S3 (supports periodic backups)
+Backup PostgreSQL 14 to S3 (supports periodic backups)
 
 ## Usage
 
 Docker:
 ```sh
-$ docker run -e S3_ACCESS_KEY_ID=key -e S3_SECRET_ACCESS_KEY=secret -e S3_BUCKET=my-bucket -e S3_PREFIX=backup -e POSTGRES_DATABASE=dbname -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_HOST=localhost dzangolab/postgres-backup-s3
+$ docker run -e S3_ACCESS_KEY_ID=key -e S3_SECRET_ACCESS_KEY=secret -e S3_BUCKET=my-bucket -e S3_PREFIX=backup -e POSTGRES_DATABASES=dbname -e POSTGRES_USER=user -e POSTGRES_PASSWORD=password -e POSTGRES_HOST=localhost dzangolab/postgres-14-backup-s3
 ```
 
 Docker Compose:
 ```yaml
 postgres:
-  image: postgres
+  image: postgres:14
   environment:
     POSTGRES_USER: user
     POSTGRES_PASSWORD: password
 
 pgbackups3:
-  image: dzangolab/postgres-backup-s3
+  image: dzangolab/postgres-14-backup-s3
   links:
     - postgres
   environment:
@@ -33,26 +33,27 @@ pgbackups3:
     POSTGRES_PASSWORD: password
     POSTGRES_EXTRA_OPTS: '--schema=public --blobs'
 ```
+
 ## Environment variables
 
+- `ENCRYPTION_PASSWORD` if not empty, backups will be encrypted using this password
+- `POSTGRES_DATABASES` list of databases you want to backup. `ALL` to backup all databases *required*
 - `POSTGRES_EXTRA_OPTS` pg_dump options (default: '')
-- `POSTGRES_DATABASES` list of databases you want to backup *required*
 - `POSTGRES_HOST` the postgres host *required*
 - `POSTGRES_PORT` the postgres port (default: 5432)
 - `POSTGRES_USER` the postgres user *required*
-- `POSTGRES_PASSWORD` the mysql password *required*
+- `POSTGRES_PASSWORD` the postgres password *required*
 - `POSTGRES_PASSWORD_FILE` path to file containing the postgres password; alternative to `POSTGRES_PASSWORD`
 - `S3_ACCESS_KEY_ID` your AWS access key *required*
 - `S3_ACCESS_KEY_ID_FILE` path to file containing your AWS access key; alternative to `S3_ACCESS_KEY_ID`
 - `S3_SECRET_ACCESS_KEY` your AWS secret key *required*
-- `S3_SECRET_ACCESS_KEY_FILE` path to file containing  your AWS secret key; alternative to `S3_SECRET_ACCESS_KEYs`
+- `S3_SECRET_ACCESS_KEY_FILE` path to file containing your AWS secret key; alternative to `S3_SECRET_ACCESS_KEY`
 - `S3_BUCKET` your AWS S3 bucket path *required*
-- `S3_PREFIX` path prefix in your bucket (default: 'backup')
-- `S3_FILENAME` a consistent filename to overwrite with your backup.  If not set will use a timestamp.
+- `S3_PREFIX` path prefix in your bucket
 - `S3_REGION` the AWS S3 bucket region (default: us-west-1)
 - `S3_ENDPOINT` the AWS Endpoint URL, for S3 Compliant APIs such as [minio](https://minio.io) (default: none)
 - `S3_S3V4` set to `yes` to enable AWS Signature Version 4, required for [minio](https://minio.io) servers (default: no)
-- `SCHEDULE` backup schedule time, see explainatons below
+- `SCHEDULE` backup schedule time, see explanations below
 
 ### Automatic Periodic Backups
 
@@ -60,3 +61,15 @@ You can additionally set the `SCHEDULE` environment variable like `-e SCHEDULE="
 
 More information about the scheduling can be found [here](http://godoc.org/github.com/robfig/cron#hdr-Predefined_schedules).
 
+## Restoring a backup
+
+Run `restore.sh` inside the container, passing either the name of a database (to restore its most recent backup) or an explicit S3 key:
+
+```sh
+$ docker exec -it <container> sh restore.sh dbname
+$ docker exec -it <container> sh restore.sh dbname/2026/06/dbname.2026-06-21T00:52:18Z.sql.gz
+```
+
+The argument is treated as an S3 key if it ends in `.sql`, `.sql.gz`, `.sql.enc`, or `.sql.gz.enc`; otherwise it is treated as a database name and the most recent backup for that database is located automatically, using the same naming convention `backup.sh` writes (`<db>/<year>/<month>/<db>[.version].<timestamp>.sql.gz[.enc]`).
+
+The backup is downloaded, decrypted (if `ENCRYPTION_PASSWORD` is set and the file ends in `.enc`), decompressed (if `.gz`), and restored into the database named by the leading path segment of the backup key with `psql`.
