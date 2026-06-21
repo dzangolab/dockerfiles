@@ -26,3 +26,7 @@ docker manifest annotate dzangolab/$1:$2 dzangolab/$1:$2-amd64 --os linux --arch
 docker manifest annotate dzangolab/$1:$2 dzangolab/$1:$2-arm64 --os linux --arch arm64
 
 docker manifest push dzangolab/$1:$2
+
+cd ..
+
+./update-dockerhub-description.sh $1
