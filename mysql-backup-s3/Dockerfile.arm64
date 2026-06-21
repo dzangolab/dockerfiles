@@ -1,4 +1,6 @@
-FROM dzangolab/docker-secrets:1.1.1 AS secrets
+ARG DOCKER_SECRETS_VERSION=1.1.1
+
+FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
 
