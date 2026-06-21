@@ -83,8 +83,9 @@ case "$ARG" in
   *.sql|*.sql.gz|*.sql.enc|*.sql.gz.enc)
     SRC_KEY="${S3_KEY_PREFIX}${ARG}"
 
-    if ! aws $AWS_ARGS s3api head-object --bucket "${S3_BUCKET}" --key "${SRC_KEY}" > /dev/null 2>&1; then
+    if ! HEAD_OBJECT_ERROR=$(aws $AWS_ARGS s3api head-object --bucket "${S3_BUCKET}" --key "${SRC_KEY}" 2>&1 > /dev/null); then
       echo "Backup file $ARG was not found under ${S3_BUCKET}"
+      echo "$HEAD_OBJECT_ERROR" >&2
       exit 1
     fi
     ;;
