@@ -81,10 +81,10 @@ ARG=$1
 
 case "$ARG" in
   *.sql|*.sql.gz|*.sql.enc|*.sql.gz.enc)
-    SRC_KEY="$ARG"
+    SRC_KEY="${S3_KEY_PREFIX}${ARG}"
 
     if ! aws $AWS_ARGS s3api head-object --bucket "${S3_BUCKET}" --key "${SRC_KEY}" > /dev/null 2>&1; then
-      echo "Backup file  $ARG was not found under S3_BUCKET"
+      echo "Backup file $ARG was not found under ${S3_BUCKET}"
       exit 1
     fi
     ;;
@@ -92,7 +92,7 @@ case "$ARG" in
     SRC_KEY=$(find_latest_backup "$ARG")
 
     if [ -z "$SRC_KEY" ]; then
-      echo "No backup file was found for database $ARG under S3_BUCKET"
+      echo "No backup file was found for database $ARG under ${S3_BUCKET}"
       exit 1
     fi
     ;;
