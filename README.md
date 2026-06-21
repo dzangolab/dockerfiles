@@ -52,3 +52,15 @@ git push origin mysql-backup-s3/1.2.0
 Pushing this tag triggers [.github/workflows/build.yml](.github/workflows/build.yml), which parses the tag, builds only that image (via `build-manifest.sh` if `<image>/Dockerfile.amd64` exists, otherwise `build.sh`), and pushes `dzangolab/<image>:1.2.0` plus its Docker Hub description.
 
 The workflow needs `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` configured as repository secrets (Settings → Secrets and variables → Actions).
+
+### Pinning the `docker-secrets` version
+
+Every image that depends on `dzangolab/docker-secrets` declares it via a Dockerfile `ARG DOCKER_SECRETS_VERSION=<pinned version>`, defaulting to whatever version that image currently builds against. Pins are independent per image — bumping one image's default doesn't affect the others.
+
+To override the version for a single local build, without editing any Dockerfile:
+
+```bash
+DOCKER_SECRETS_VERSION=1.1.2 ./build.sh mysql-backup-s3 1.3.0
+```
+
+In CI, the build step picks up the repository variable `DOCKER_SECRETS_VERSION` (Settings → Secrets and variables → Actions → Variables) if it's set, and passes it as the same build arg — letting you bump every image to a given `docker-secrets` version on the next tag push, while leaving the variable unset still respects each Dockerfile's own pinned default.

@@ -1,4 +1,6 @@
-FROM dzangolab/docker-secrets:0.6.sh AS secrets
+ARG DOCKER_SECRETS_VERSION=0.6.sh
+
+FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 
 FROM twentycrm/twenty:v0.60.7
 

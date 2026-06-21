@@ -1,4 +1,6 @@
-FROM dzangolab/docker-secrets:0.9 AS secrets
+ARG DOCKER_SECRETS_VERSION=0.9
+
+FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 
 FROM nocodb/nocodb:0.264.6
 

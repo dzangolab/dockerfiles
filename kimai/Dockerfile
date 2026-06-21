@@ -1,4 +1,6 @@
-FROM dzangolab/docker-secrets:0.8 AS secrets
+ARG DOCKER_SECRETS_VERSION=0.8
+
+FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 
 FROM kimai/kimai2:apache-2.37.0
 
