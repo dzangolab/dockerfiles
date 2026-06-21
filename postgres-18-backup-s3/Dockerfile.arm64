@@ -1,4 +1,4 @@
-FROM dzangolab/docker-secrets:0.9 AS secrets
+FROM dzangolab/docker-secrets:1.1.1 AS secrets
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
 
@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
 
 COPY run.sh run.sh
 COPY backup.sh backup.sh
+COPY restore.sh restore.sh
 
 #ENV ENCRYPTION_PASSWORD
 ENV POSTGRES_DATABASES=ALL
@@ -53,4 +54,4 @@ ENV S3_S3V4=no
 #ENV S3_SECRET_ACCESS_KEY
 ENV SCHEDULE=@daily
 
-CMD ["bash", "run.sh"]
+CMD ["sh", "run.sh"]

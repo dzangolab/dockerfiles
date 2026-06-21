@@ -60,3 +60,16 @@ pgbackups3:
 You can additionally set the `SCHEDULE` environment variable like `-e SCHEDULE="@daily"` to run the backup automatically.
 
 More information about the scheduling can be found [here](http://godoc.org/github.com/robfig/cron#hdr-Predefined_schedules).
+
+## Restoring a backup
+
+Run `restore.sh` inside the container, passing either the name of a database (to restore its most recent backup) or an explicit S3 key:
+
+```sh
+$ docker exec -it <container> sh restore.sh dbname
+$ docker exec -it <container> sh restore.sh dbname/2026/06/dbname.2026-06-21T00:52:18Z.sql.gz
+```
+
+The argument is treated as an S3 key if it ends in `.sql`, `.sql.gz`, `.sql.enc`, or `.sql.gz.enc`; otherwise it is treated as a database name and the most recent backup for that database is located automatically, using the same naming convention `backup.sh` writes (`<db>/<year>/<month>/<db>[.version].<timestamp>.sql.gz[.enc]`).
+
+The backup is downloaded, decrypted (if `ENCRYPTION_PASSWORD` is set and the file ends in `.enc`), decompressed (if `.gz`), and restored into the database named by the leading path segment of the backup key with `psql`.
