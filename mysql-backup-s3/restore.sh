@@ -6,36 +6,36 @@ set -e
 
 expand_secrets
 
-if [ "${S3_IAMROLE}" != "true" ]; then
-  if [ -z "${S3_ACCESS_KEY_ID}" ]; then
+if [ "${S3_IAMROLE:-}" != "true" ]; then
+  if [ -z "${S3_ACCESS_KEY_ID:-}" ]; then
     echo "Warning: You did not set the S3_ACCESS_KEY_ID environment variable."
   fi
 
-  if [ -z "${S3_SECRET_ACCESS_KEY}" ]; then
+  if [ -z "${S3_SECRET_ACCESS_KEY:-}" ]; then
     echo "Warning: You did not set the S3_SECRET_ACCESS_KEY environment variable."
   fi
 fi
 
-if [ -z "${S3_BUCKET}" ]; then
+if [ -z "${S3_BUCKET:-}" ]; then
   echo "You need to set the S3_BUCKET environment variable."
   exit 1
 fi
 
-if [ -z "${DATABASE_HOST}" ]; then
+if [ -z "${DATABASE_HOST:-}" ]; then
   echo "You need to set the DATABASE_HOST environment variable."
   exit 1
 fi
 
-if [ -z "${DATABASE_PORT}" ]; then
+if [ -z "${DATABASE_PORT:-}" ]; then
   DATABASE_PORT=3306
 fi
 
-if [ -z "${DATABASE_USER}" ]; then
+if [ -z "${DATABASE_USER:-}" ]; then
   echo "You need to set the DATABASE_USER environment variable."
   exit 1
 fi
 
-if [ -z "${DATABASE_PASSWORD}" ]; then
+if [ -z "${DATABASE_PASSWORD:-}" ]; then
   echo "You need to set the DATABASE_PASSWORD environment variable or link to a container named MYSQL."
   exit 1
 fi
@@ -45,20 +45,20 @@ if [ -z "${1:-}" ]; then
   exit 1
 fi
 
-if [ "${S3_IAMROLE}" != "true" ]; then
+if [ "${S3_IAMROLE:-}" != "true" ]; then
   # env vars needed for aws tools - only if an IAM role is not used
-  export AWS_ACCESS_KEY_ID=$S3_ACCESS_KEY_ID
-  export AWS_SECRET_ACCESS_KEY=$S3_SECRET_ACCESS_KEY
-  export AWS_DEFAULT_REGION=$S3_REGION
+  export AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID:-}
+  export AWS_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY:-}
+  export AWS_DEFAULT_REGION=${S3_REGION:-}
 fi
 
-if [ -z "${S3_ENDPOINT}" ]; then
+if [ -z "${S3_ENDPOINT:-}" ]; then
   AWS_ARGS=""
 else
   AWS_ARGS="--endpoint-url ${S3_ENDPOINT}"
 fi
 
-if [ -z "${S3_PREFIX}" ]; then
+if [ -z "${S3_PREFIX:-}" ]; then
   S3_KEY_PREFIX=""
 else
   S3_KEY_PREFIX="${S3_PREFIX}/"
