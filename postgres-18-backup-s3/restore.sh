@@ -2,6 +2,10 @@
 
 set -e
 
+. /expand_secrets.sh
+
+expand_secrets
+
 if [ -z "${S3_ACCESS_KEY_ID:-}" ]; then
   echo "Warning: You did not set the S3_ACCESS_KEY_ID environment variable."
 fi
