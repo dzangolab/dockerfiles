@@ -17,6 +17,7 @@ jobs:
           tag="${GITHUB_REF_NAME}"
           image="${tag%%/*}"
           version="${tag#*/}"
+          version="${version#v}"
 
           if [ ! -d "$image" ]; then
             echo "::error::No directory named '$image' at repo root (parsed from tag '$tag')"
