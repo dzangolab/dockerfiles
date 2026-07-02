@@ -129,3 +129,7 @@ docker build -f test/Dockerfile -t docker-secrets-test .
 ```
 
 The build fails if any assertion fails.
+
+## Related
+
+- Github: [dzangolab/docker-secrets](https://github.com/dzangolab/dockerfiles/tree/main/docker-secrets)

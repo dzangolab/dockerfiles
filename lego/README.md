@@ -74,6 +74,7 @@ All environment variables supported by the upstream `goacme/lego` image are pass
 
 ## Related
 
+- Github: [dzangolab/docker-lego](https://github.com/dzangolab/dockerfiles/tree/main/lego)
 - [Ansible role: docker_lego](../../ansible/roles/docker_lego/README.md) — deploys this image as a Docker Swarm stack with Cloudflare DNS, automated renewal, and Traefik integration
+- [dzangolab/docker-secrets](https://hub.docker.com/repository/docker/dzangolab/docker-secrets)
 - [goacme/lego documentation](https://go-acme.github.io/lego/)
-- [dzangolab/docker-secrets](https://github.com/dzangolab/docker-secrets)
