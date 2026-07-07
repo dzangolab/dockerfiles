@@ -1,15 +1,14 @@
-ARG DOCKER_SECRETS_VERSION=0.9
+ARG DOCKER_SECRETS_VERSION=1.1.3
 
 FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
-
-FROM python:3.13.7-slim
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
+
+FROM python:3.13.7-slim AS base
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
 RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor > /usr/share/keyrings/postgresql.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
       > /etc/apt/sources.list.d/pgdg.list && \
@@ -35,8 +34,9 @@ RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
-ADD run.sh run.sh
-ADD backup.sh backup.sh
+COPY run.sh run.sh
+COPY backup.sh backup.sh
+COPY restore.sh restore.sh
 
 #ENV ENCRYPTION_PASSWORD
 ENV POSTGRES_DATABASES=ALL
@@ -55,4 +55,4 @@ ENV S3_S3V4=no
 #ENV S3_SECRET_ACCESS_KEY
 ENV SCHEDULE=@daily
 
-CMD ["bash", "run.sh"]
+CMD ["sh", "run.sh"]
