@@ -39,9 +39,16 @@ if [ -z "${POSTGRES_PASSWORD:-}" ]; then
 fi
 
 if [ -z "${1:-}" ]; then
-  echo "Usage: restore.sh <s3-key-ending-in-.sql-or-.sql.gz|database-name>"
+  echo "Usage: restore.sh <s3-key-ending-in-.sql-or-.sql.gz|database-name> <owner-role>"
   exit 1
 fi
+
+if [ -z "${2:-}" ]; then
+  echo "Usage: restore.sh <s3-key-ending-in-.sql-or-.sql.gz|database-name> <owner-role>"
+  exit 1
+fi
+
+OWNER_ROLE="$2"
 
 export AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID:-}
 export AWS_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY:-}
@@ -132,8 +139,8 @@ case "$DEST_FILE" in
     ;;
 esac
 
-echo "Restoring ${DEST_FILE} into database ${DATABASE_NAME}..."
+echo "Restoring ${DEST_FILE} into database ${DATABASE_NAME}, owned by role ${OWNER_ROLE}..."
 
-psql $POSTGRES_HOST_OPTS -d "$DATABASE_NAME" -f "$DEST_FILE"
+psql $POSTGRES_HOST_OPTS -d "$DATABASE_NAME" -c "SET ROLE \"$OWNER_ROLE\";" -f "$DEST_FILE"
 
 echo "Restore completed"
