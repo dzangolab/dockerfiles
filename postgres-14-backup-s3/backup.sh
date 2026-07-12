@@ -78,7 +78,7 @@ for DB in $DB_LIST; do
   DEST_FILE=${DB}/$(date +"%Y")/$(date +"%m")/${DB}${POSTGRES_VERSION}.$(date +"%Y-%m-%dT%H:%M:%SZ").sql.gz
 
   echo "Creating dump of ${DB} database from ${POSTGRES_HOST}..."
-  if ! pg_dump $POSTGRES_HOST_OPTS "$DB" > "$DUMP_FILE"; then
+  if ! pg_dump --no-owner $POSTGRES_HOST_OPTS "$DB" > "$DUMP_FILE"; then
     >&2 echo "Error creating dump for database: ${DB}"
     rm -f "$DUMP_FILE"
     continue
