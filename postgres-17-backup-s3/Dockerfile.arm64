@@ -4,7 +4,7 @@ FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
 
-FROM python:3.13.7-slim AS base
+FROM dhi.io/python:3.14 AS base
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 
