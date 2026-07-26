@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
  && chmod +x /usr/local/bin/go-cron
 
-FROM dhi.io/postgres:13 AS base
+FROM postgres:13 AS base
 
 ENTRYPOINT []
 
@@ -33,7 +33,7 @@ COPY --from=build /usr/local/bin/go-cron /usr/local/bin/go-cron
 
 USER 0
 RUN ln -s /usr/local/aws-cli/v2/current/bin/aws /usr/local/bin/aws
-USER 70
+USER postgres
 
 COPY run.sh run.sh
 COPY backup.sh backup.sh
