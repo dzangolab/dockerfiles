@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM postgres:13 AS base
 
+WORKDIR /tmp
+
 ENTRYPOINT []
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
