@@ -1,0 +1,59 @@
+ARG DOCKER_SECRETS_VERSION=1.1.4
+
+FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
+LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
+HEALTHCHECK CMD curl --fail http://localhost:18080 || exit 1
+
+FROM dhi.io/python:3.14-debian-sfw-ent-dev AS build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    gzip \
+    unzip \
+ && curl -sL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o awscliv2.zip \
+ && unzip awscliv2.zip \
+ && ./aws/install \
+ && rm -rf \
+    awscliv2.zip \
+    aws \
+    /usr/local/aws-cli/v2/*/dist/aws_completer \
+    /usr/local/aws-cli/v2/*/dist/awscli/data/ac.index \
+    /usr/local/aws-cli/v2/*/dist/awscli/examples \
+ && curl -L --insecure https://github.com/odise/go-cron/releases/download/v0.0.7/go-cron-linux.gz | zcat > /usr/local/bin/go-cron \
+ && chmod +x /usr/local/bin/go-cron
+
+FROM dhi.io/postgres:13 AS base
+
+ENTRYPOINT []
+
+COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
+COPY --from=build /usr/bin/gzip /usr/bin/gzip
+COPY --from=build /usr/local/aws-cli /usr/local/aws-cli
+COPY --from=build /usr/local/bin/go-cron /usr/local/bin/go-cron
+
+USER 0
+RUN ln -s /usr/local/aws-cli/v2/current/bin/aws /usr/local/bin/aws
+USER 70
+
+COPY run.sh run.sh
+COPY backup.sh backup.sh
+COPY restore.sh restore.sh
+
+#ENV ENCRYPTION_PASSWORD
+ENV POSTGRES_DATABASES=ALL
+ENV POSTGRES_EXTRA_OPTS=''
+#ENV POSTGRES_HOST
+#ENV POSTGRES_PASSWORD
+ENV POSTGRES_PORT=5432
+ENV POSTGRES_USER=postgres
+#ENV S3_ACCESS_KEY_ID
+#ENV S3_BUCKET
+#ENV S3_ENDPOINT
+#ENV S3_FILENAME
+#ENV S3_PREFIX
+ENV S3_REGION=us-west-1
+ENV S3_S3V4=no
+#ENV S3_SECRET_ACCESS_KEY
+ENV SCHEDULE=@daily
+
+CMD ["sh", "run.sh"]
