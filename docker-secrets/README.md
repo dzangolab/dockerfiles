@@ -122,7 +122,7 @@ Set the `DZANGOLAB_DOCKER_SECRETS_DEBUG` environment variable to any non-empty v
 
 ## Testing
 
-`test/Dockerfile` builds the image and runs the same set of checks (happy path, the `/run/secrets/`-prefix restriction, the already-set-variable guard, a missing secret file, and debug output) under three shells: `bash` (`test/run_tests.sh`), and `dash` and BusyBox `sh` (`test/run_tests_posix.sh`), to guard against bash-specific syntax creeping back in. Run it locally with:
+`test/Dockerfile` runs `test/run_tests.sh` under three shells: `bash`, `dash` and BusyBox `sh`, to guard against bash-specific syntax creeping back in. The checks cover the happy path, the `/run/secrets/`-prefix restriction, the already-set-variable guard, a missing secret file, debug output (including that it never prints secret values), trailing and embedded newlines, special characters kept verbatim, and multi-line values of other variables. Run it locally with:
 
 ```bash
 docker build -f test/Dockerfile -t docker-secrets-test .
