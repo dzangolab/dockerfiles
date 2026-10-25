@@ -4,7 +4,7 @@ A custom Docker image for the Open-source time tracker [Kimai](https://www.kimai
 
 ## Base image
 
-This image is based on the [kimai/kimai2:apache-2.31.0](https://hub.docker.com/layers/kimai/kimai2/apache-2.31.0/images/sha256-5602f80946c9adf19d04b76b54b71befb6b8d0c535d05239faa54803689e92bd) image.
+This image is based on the [kimai/kimai2:2.70.2](https://hub.docker.com/layers/kimai/kimai2/2.70.2) image.
 
 ## Environment variables
 
@@ -49,6 +49,26 @@ If the `DATABASE_URL_FILE` environment variable is defined, as the path to a Doc
 If the `DATABASE_PASSWORD_FILE` environment variable is defined, as the path to a Docker secret, the value of that secret will be set as the value of the `DATABASE_PASSWORD` environment variable. 
 
 This will be used, in conjunction with the other `DATABASE_*` environment variables, to define the `DATABASE_URL` environment variable at runtime.
+
+### Special characters in passwords
+
+When the `DATABASE_URL` is built from `DATABASE_PASSWORD` and `DATABASE_USER`, both values are percent-encoded, so they may contain any character.
+
+If you supply `DATABASE_URL` (or `DATABASE_URL_FILE`) yourself, you must percent-encode the user and password. The following characters break the parsing of the URL, either by Kimai's startup script (which splits the URL on `/`, `:` and `@`) or by Doctrine:
+
+| Character | Encoded |
+| --------- | ------- |
+| `#`       | `%23`   |
+| `%`       | `%25`   |
+| `+`       | `%2B`   |
+| `/`       | `%2F`   |
+| `:`       | `%3A`   |
+| `?`       | `%3F`   |
+| `@`       | `%40`   |
+| `[`       | `%5B`   |
+| `]`       | `%5D`   |
+
+A literal `+` is decoded as a space by Kimai's database check but kept as `+` by Doctrine, so it must always be encoded. A literal `%` starts an escape sequence. To be safe, percent-encode every character that is not a letter, a digit, `-`, `.`, `_` or `~`.
 
 ## Usage
 
