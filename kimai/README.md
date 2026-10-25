@@ -16,8 +16,13 @@ The image supports all the [original environment variables](https://www.kimai.or
 * `DATABASE_PORT` - The database port (default: `3306`)
 * `DATABASE_USER` - The database user (default: `kimai`)
 * `ENV_SECRETS_DEBUG` - A boolean flag for debugging the secret expansion process
+* `MAILER_HOST` - The SMTP host
+* `MAILER_PASSWORD` - The SMTP password
+* `MAILER_PORT` - The SMTP port (default: chosen by Symfony Mailer for the scheme)
+* `MAILER_SCHEME` - The mailer scheme, eg. `smtp` or `smtps` (default: `smtp`)
+* `MAILER_USER` - The SMTP user
 
-These are used to construct the `DATABASE_URL` environment variable unless that variable is present.
+The `DATABASE_*` variables are used to construct the `DATABASE_URL` environment variable, and the `MAILER_*` variables the `MAILER_URL` environment variable, unless that variable is present. See [Database credentials](#database-credentials) and [Mailer credentials](#mailer-credentials).
 
 ## Docker secrets
 
@@ -27,10 +32,12 @@ Any environment variable can be defined via a [Docker secret](https://docs.docke
 
 It is recommended that all environment variables representing sensitive values should be declared with a `_FILE` suffix. These include:
 
+* `ADMINPASS`
 * `APP_SECRET`
 * `DATABASE_PASSWORD`
 * `DATABASE_URL` (see below)
-* `ADMINPASS`
+* `MAILER_PASSWORD`
+* `MAILER_URL` (see below)
 
 ## Database credentials
 
@@ -69,6 +76,18 @@ If you supply `DATABASE_URL` (or `DATABASE_URL_FILE`) yourself, you must percent
 | `]`       | `%5D`   |
 
 A literal `+` is decoded as a space by Kimai's database check but kept as `+` by Doctrine, so it must always be encoded. A literal `%` starts an escape sequence. To be safe, percent-encode every character that is not a letter, a digit, `-`, `.`, `_` or `~`.
+
+## Mailer credentials
+
+Kimai sends mail through [Symfony Mailer](https://symfony.com/doc/6.4/mailer.html), configured by the `MAILER_URL` environment variable.
+
+As with `DATABASE_URL`, you should avoid declaring the full `MAILER_URL` as an environment variable if it contains a password. In order of precedence:
+
+1. `MAILER_URL`, or `MAILER_URL_FILE` as the path to a Docker secret, is used as is.
+2. Otherwise, if `MAILER_HOST` is defined, `MAILER_URL` is built as `<MAILER_SCHEME>://<MAILER_USER>:<MAILER_PASSWORD>@<MAILER_HOST>:<MAILER_PORT>`. The user, password and port are optional. Use `MAILER_PASSWORD_FILE` to pass the password as a Docker secret.
+3. Otherwise, `MAILER_URL` is set to `null://null`, and Kimai does not send any mail.
+
+When the `MAILER_URL` is built from `MAILER_USER` and `MAILER_PASSWORD`, both values are percent-encoded, so they may contain any character. If you supply `MAILER_URL` yourself, percent-encode the user and password, as described for `DATABASE_URL` [above](#special-characters-in-passwords).
 
 ## Usage
 
