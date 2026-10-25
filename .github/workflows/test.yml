@@ -1,0 +1,22 @@
+name: Test
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/test.yml'
+      - 'docker-secrets/**'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/test.yml'
+      - 'docker-secrets/**'
+
+jobs:
+  docker-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run tests
+        run: docker build -f docker-secrets/test/Dockerfile docker-secrets

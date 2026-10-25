@@ -98,6 +98,42 @@ DZANGOLAB_DOCKER_SECRETS_DEBUG=1 expand_secrets > /tmp/debug.out 2>&1
 debug_output=$(cat /tmp/debug.out)
 assert_not_contains "debug output has no leftover literal 'echo'" "$debug_output" "echo Expanded"
 assert_eq "debug run still expands the secret" "other-secret" "${OTHER:-}"
+assert_not_contains "debug output does not leak the secret value" "$debug_output" "other-secret"
+unset OTHER
+
+# Case 6: trailing newlines (eg. from `echo secret > file`) are stripped
+printf 'with-newline\n\n' > /run/secrets/trailing_newline
+TRAILING_FILE=/run/secrets/trailing_newline
+export TRAILING_FILE
+expand_secrets
+assert_eq "strips trailing newlines" "with-newline" "${TRAILING:-}"
+unset TRAILING
+
+# Case 7: special characters are kept verbatim, not evaluated by the shell
+special='p@ss/w:rd#?+% $HOME `id` $(id) "dq" '"'sq'"' \ & ; | * [x]'
+printf '%s' "$special" > /run/secrets/special
+SPECIAL_FILE=/run/secrets/special
+export SPECIAL_FILE
+expand_secrets
+assert_eq "keeps special characters verbatim" "$special" "${SPECIAL:-}"
+unset SPECIAL
+
+# Case 8: embedded newlines are preserved
+printf 'line1\nline2' > /run/secrets/multiline
+MULTILINE_FILE=/run/secrets/multiline
+export MULTILINE_FILE
+expand_secrets
+assert_eq "preserves embedded newlines" "line1
+line2" "${MULTILINE:-}"
+unset MULTILINE
+
+# Case 9: a multi-line value that looks like a _FILE var is not mistaken for one
+SOME_VAR="first line
+INJECTED_FILE=/run/secrets/other"
+export SOME_VAR
+expand_secrets
+assert_unset "ignores _FILE assignments inside another var's value" INJECTED
+unset SOME_VAR
 
 echo
 if [ "$failures" -eq 0 ]; then

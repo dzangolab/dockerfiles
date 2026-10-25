@@ -2,29 +2,29 @@ FROM scratch AS secrets
 
 COPY expand_secrets.sh /expand_secrets.sh
 
-FROM bash:5 AS test-bash
+FROM bash:5.3.20 AS test-bash
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 COPY test/run_tests.sh /run_tests.sh
 
-RUN chmod +x /run_tests.sh && /run_tests.sh
+RUN bash /run_tests.sh
 
-FROM debian:bookworm-slim AS test-dash
-
-RUN apt-get update && apt-get install -y --no-install-recommends dash && rm -rf /var/lib/apt/lists/*
-
-COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
-COPY test/run_tests_posix.sh /run_tests_posix.sh
-
-RUN chmod +x /run_tests_posix.sh && dash /run_tests_posix.sh
-
-FROM alpine:3 AS test-busybox-sh
+# Debian's /bin/sh is dash
+FROM debian:trixie-20261020-slim AS test-dash
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
-COPY test/run_tests_posix.sh /run_tests_posix.sh
+COPY test/run_tests.sh /run_tests.sh
 
-RUN chmod +x /run_tests_posix.sh && /bin/sh /run_tests_posix.sh
+RUN dash /run_tests.sh
 
+FROM alpine:3.24.3 AS test-busybox-sh
+
+COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
+COPY test/run_tests.sh /run_tests.sh
+
+RUN /bin/sh /run_tests.sh
+
+# Depends on every test stage so that BuildKit doesn't skip any of them
 FROM scratch AS test
 
 COPY --from=test-bash /expand_secrets.sh /expand_secrets.sh
