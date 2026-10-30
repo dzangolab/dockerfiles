@@ -65,10 +65,6 @@ Any other command is run instead of the web stack, after secrets are expanded:
 docker run --rm dzangolab/php-fpm-nginx:8.3.36 php -v
 ```
 
-### Health check
-
-The image declares a `HEALTHCHECK` that requests PHP-FPM's ping page at `/fpm-ping` through nginx. That URL only answers requests from inside the container.
-
 ## Migrating from `dzangolab/docker-php-nginx`
 
 This image replaces `dzangolab/docker-php-nginx`. Differences:
