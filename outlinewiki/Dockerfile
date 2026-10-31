@@ -2,7 +2,7 @@ ARG DOCKER_SECRETS_VERSION=0.9
 
 FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 
-FROM outlinewiki/outline:1.10
+FROM outlinewiki/outline:1.12
 
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
