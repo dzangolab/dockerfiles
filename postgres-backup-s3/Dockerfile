@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.15-slim
 LABEL maintainer="Dzango Technologies Limited <info@dzangolab.com>"
 
 RUN apt-get update && apt-get install -y wget gnupg lsb-release && \
