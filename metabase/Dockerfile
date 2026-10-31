@@ -1,4 +1,4 @@
-FROM metabase/metabase:v0.39.3
+FROM metabase/metabase:v0.65.2.1
 LABEL maintainer Dzango Technologies <info@dzango.com>
 
 COPY start.sh /app/start.sh
