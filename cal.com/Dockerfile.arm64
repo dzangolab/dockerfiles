@@ -2,7 +2,7 @@ ARG DOCKER_SECRETS_VERSION=0.9
 
 FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 
-FROM calcom/cal.com:v5.9.12-arm
+FROM calcom/cal.com:v6.2.0-arm
 
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
 LABEL org.opencontainers.image.description="A custom Docker image for the Open-source [cal.com](https://cal.com/) app with added support for docker secrets."
