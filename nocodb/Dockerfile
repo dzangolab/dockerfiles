@@ -2,7 +2,7 @@ ARG DOCKER_SECRETS_VERSION=0.9
 
 FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 
-FROM nocodb/nocodb:0.264.6
+FROM nocodb/nocodb:0.301.5
 
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
 LABEL org.opencontainers.image.description="A customer Docker image for the Open-source [NocoDB](https://nocodb.com/) no-code database with added support for docker secrets."
