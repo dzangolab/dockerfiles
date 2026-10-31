@@ -1,0 +1,21 @@
+updates:
+  - directories:
+      - "/*"
+      - "/docker-secrets/test"
+    ignore:
+      # Each postgres-NN-backup-s3 image is tied to its Postgres major version.
+      - dependency-name: "*postgres"
+        update-types:
+          - "version-update:semver-major"
+    package-ecosystem: "docker"
+    schedule:
+      interval: "weekly"
+  - directory: "/"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    package-ecosystem: "github-actions"
+    schedule:
+      interval: "weekly"
+version: 2
