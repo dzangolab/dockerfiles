@@ -1,4 +1,4 @@
-FROM snipe/snipe-it:v5.1.5
+FROM snipe/snipe-it:v8.8.3
 LABEL maintainer Dzango Technologies <info@dzango.com>
 
 COPY start.sh /
