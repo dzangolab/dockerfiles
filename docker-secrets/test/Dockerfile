@@ -10,7 +10,7 @@ COPY test/run_tests.sh /run_tests.sh
 RUN bash /run_tests.sh
 
 # Debian's /bin/sh is dash
-FROM debian:trixie-20261020-slim AS test-dash
+FROM debian:trixie-20261027-slim AS test-dash
 
 COPY --from=secrets /expand_secrets.sh /expand_secrets.sh
 COPY test/run_tests.sh /run_tests.sh
