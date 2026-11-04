@@ -2,7 +2,7 @@ ARG DOCKER_SECRETS_VERSION=0.6.sh
 
 FROM dzangolab/docker-secrets:${DOCKER_SECRETS_VERSION} AS secrets
 
-FROM twentycrm/twenty:v0.60.7
+FROM twentycrm/twenty:v2.53.1
 
 LABEL org.opencontainers.image.authors="info@dzangolab.com"
 LABEL org.opencontainers.image.description="A custom Docker image for the Open-source [twentycrm](https://twenty.com/) app with added support for docker secrets."
