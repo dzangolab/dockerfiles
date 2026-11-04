@@ -42,14 +42,14 @@ Each image has its own independent versioning, so a build is never triggered by 
 
 ### Tagging convention
 
-Tags are namespaced per image: `<image>/<semver>`, e.g. `mysql-backup-s3/1.2.0`. The image name is the name of the directory at the repo root; the version is that image's own version, independent of every other image's.
+Tags are namespaced per image: `<image>/v<semver>`, e.g. `mysql-backup-s3/v1.2.0`. The image name is the name of the directory at the repo root; the version is that image's own version, independent of every other image's. The `v` is required: tags without it do not trigger a build.
 
 ```bash
-git tag mysql-backup-s3/1.2.0
-git push origin mysql-backup-s3/1.2.0
+git tag mysql-backup-s3/v1.2.0
+git push origin mysql-backup-s3/v1.2.0
 ```
 
-Pushing this tag triggers [.github/workflows/build.yml](.github/workflows/build.yml), which parses the tag, builds only that image (via `build-manifest.sh` if `<image>/Dockerfile.amd64` exists, otherwise `build.sh`), and pushes `dzangolab/<image>:1.2.0` plus its Docker Hub description.
+Pushing this tag triggers [.github/workflows/build.yml](.github/workflows/build.yml), which parses the tag, strips the `v`, builds only that image (via `build-manifest.sh` if `<image>/Dockerfile.amd64` exists, otherwise `build.sh`), and pushes `dzangolab/<image>:1.2.0` plus its Docker Hub description.
 
 The workflow needs `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` configured as repository secrets (Settings → Secrets and variables → Actions).
 
