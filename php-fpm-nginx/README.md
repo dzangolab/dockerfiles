@@ -6,7 +6,7 @@ It is intended as a base image for PHP applications.
 
 ## Base image
 
-This image is based on the official [php:8.3.36-fpm](https://hub.docker.com/_/php) image (Debian).
+This image is based on the official [php:8.3.37-fpm](https://hub.docker.com/_/php) image (Debian).
 
 ## What's included
 
@@ -21,7 +21,7 @@ PHP-FPM workers run as `www-data`, with UID `1001`.
 
 | Argument                 | Default          | Description                                  |
 | ------------------------ | ---------------- | -------------------------------------------- |
-| `PHP_VERSION`            | `8.3.36`         | Tag of the `php:<version>-fpm` base image    |
+| `PHP_VERSION`            | `8.3.37`         | Tag of the `php:<version>-fpm` base image    |
 | `DOCKER_SECRETS_VERSION` | `1.1.4`          | Version of `dzangolab/docker-secrets`        |
 | `IMAGICK_VERSION`        | `3.8.1`          | PECL `imagick` version                       |
 | `TIMEZONE`               | `Asia/Hong_Kong` | PHP `date.timezone`                          |
@@ -48,7 +48,7 @@ Set `DZANGOLAB_DOCKER_SECRETS_DEBUG` to any non-empty value to log which secrets
 ### As a base image
 
 ```Dockerfile
-FROM dzangolab/php-fpm-nginx:8.3.36
+FROM dzangolab/php-fpm-nginx:8.3.37
 
 COPY --chown=www-data:www-data . /var/www/html
 ```
@@ -62,7 +62,7 @@ With no command, the container starts PHP-FPM and nginx. If either one exits, th
 Any other command is run instead of the web stack, after secrets are expanded:
 
 ```bash
-docker run --rm dzangolab/php-fpm-nginx:8.3.36 php -v
+docker run --rm dzangolab/php-fpm-nginx:8.3.37 php -v
 ```
 
 ## Migrating from `dzangolab/docker-php-nginx`
